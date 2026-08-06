@@ -1,0 +1,21 @@
+# --- Secrets: never commit these ---
+*.pem
+*.key
+id_*
+*_ed25519
+*_rsa
+*_ecdsa
+known_hosts
+.env
+.env.*
+secrets/
+ssh/keys/
+
+# Local, machine-specific overrides (copy from the tracked templates)
+inventory/fleet.local.hosts
+ssh/config.local
+
+# Noise
+*.log
+*.tmp
+.DS_Store

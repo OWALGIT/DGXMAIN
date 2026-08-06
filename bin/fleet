@@ -1,0 +1,223 @@
+#!/usr/bin/env bash
+# fleet — lightweight SSH fleet manager (no dependencies beyond ssh/scp).
+#
+# Reads the inventory at inventory/fleet.hosts and runs commands across the
+# whole fleet or a named group, in parallel, with per-host labelled output.
+#
+# Usage:
+#   fleet list [group]                 List hosts (optionally in a group)
+#   fleet groups                       List all groups
+#   fleet ping [group]                 Check SSH connectivity
+#   fleet run  [-g grp|-H h1,h2] CMD   Run CMD on hosts (parallel)
+#   fleet run  [target] CMD            (target may be a group or host name)
+#   fleet ssh  <host> [CMD...]         Interactive/one-off ssh to one host
+#   fleet copy [-g grp] SRC DEST       scp SRC to DEST on hosts (parallel)
+#   fleet gpu  [group]                 nvidia-smi across gpu hosts
+#   fleet status [group]               uptime + load + disk snapshot
+#   fleet ip   <host>                  Print a host's IP
+#
+# Environment:
+#   FLEET_SSH_USER   default ssh user (default: root)
+#   FLEET_INVENTORY  path to inventory file (default: <repo>/inventory/fleet.hosts)
+#   FLEET_SSH_OPTS   extra ssh options (default sets sane timeouts + batch mode)
+#   FLEET_PARALLEL   max concurrent hosts (default: 10)
+set -euo pipefail
+
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+INVENTORY="${FLEET_INVENTORY:-$REPO_DIR/inventory/fleet.hosts}"
+SSH_USER="${FLEET_SSH_USER:-root}"
+PARALLEL="${FLEET_PARALLEL:-10}"
+SSH_CONFIG="$REPO_DIR/ssh/config"
+
+# Non-interactive, fail-fast ssh defaults. BatchMode avoids password hangs.
+DEFAULT_SSH_OPTS="-o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new -o ServerAliveInterval=15 -o ServerAliveCountMax=3"
+SSH_OPTS="${FLEET_SSH_OPTS:-$DEFAULT_SSH_OPTS}"
+[ -f "$SSH_CONFIG" ] && SSH_OPTS="-F $SSH_CONFIG $SSH_OPTS"
+
+c_reset=$'\033[0m'; c_host=$'\033[36m'; c_ok=$'\033[32m'; c_err=$'\033[31m'; c_dim=$'\033[2m'
+# Disable colour when not a tty
+if [ ! -t 1 ]; then c_reset=; c_host=; c_ok=; c_err=; c_dim=; fi
+
+die() { echo "${c_err}fleet: $*${c_reset}" >&2; exit 1; }
+[ -f "$INVENTORY" ] || die "inventory not found: $INVENTORY"
+
+# --- inventory parsing -------------------------------------------------------
+# Emits: name<TAB>ip<TAB>groups<TAB>user  for matching hosts.
+# _select <selector>   selector = "" | group | comma,list,of,names_or_groups
+_all_rows() {
+  # strip comments/blank lines, normalise whitespace
+  grep -vE '^[[:space:]]*(#|$)' "$INVENTORY" | awk '{print $1"\t"$2"\t"($3==""?"all":$3)"\t"($4==""?"":$4)}'
+}
+
+_select() {
+  local sel="${1:-all}"
+  _all_rows | while IFS=$'\t' read -r name ip groups user; do
+    [ -z "$name" ] && continue
+    local matched=0
+    IFS=',' read -ra want <<< "$sel"
+    for w in "${want[@]}"; do
+      w="$(echo "$w" | tr -d '[:space:]')"
+      [ -z "$w" ] && continue
+      if [ "$w" = "$name" ]; then matched=1; break; fi
+      case ",$groups," in *",$w,"*) matched=1; break;; esac
+    done
+    if [ "$matched" = 1 ]; then
+      printf '%s\t%s\t%s\t%s\n' "$name" "$ip" "$groups" "$user"
+    fi
+  done
+}
+
+_host_ip() { _all_rows | awk -F'\t' -v n="$1" '$1==n{print $2; exit}'; }
+_host_user() {
+  local u; u="$(_all_rows | awk -F'\t' -v n="$1" '$1==n{print $4; exit}')"
+  echo "${u:-$SSH_USER}"
+}
+
+_ssh_target() { # name -> user@ip
+  local name="$1" ip user
+  ip="$(_host_ip "$name")"; [ -z "$ip" ] && die "unknown host: $name"
+  user="$(_host_user "$name")"
+  echo "$user@$ip"
+}
+
+# --- run a command on one host, capturing + labelling output -----------------
+_run_one() {
+  local name="$1"; shift
+  local target rc
+  target="$(_ssh_target "$name")"
+  local out
+  if out="$(ssh $SSH_OPTS "$target" -- "$@" 2>&1)"; then rc=0; else rc=$?; fi
+  # label every line with the host
+  while IFS= read -r line; do
+    printf '%s%-14s%s | %s\n' "$c_host" "$name" "$c_reset" "$line"
+  done <<< "$out"
+  if [ "$rc" -ne 0 ]; then
+    printf '%s%-14s%s | %sexit=%s%s\n' "$c_host" "$name" "$c_reset" "$c_err" "$rc" "$c_reset"
+  fi
+  return "$rc"
+}
+
+# fan out across hosts, throttled to $PARALLEL
+_fanout() {
+  local sel="$1"; shift
+  local names; names="$(_select "$sel" | cut -f1)"
+  [ -z "$names" ] && die "no hosts match selector: $sel"
+  local running=0
+  while IFS= read -r name; do
+    [ -z "$name" ] && continue
+    _run_one "$name" "$@" &
+    running=$((running+1))
+    if [ "$running" -ge "$PARALLEL" ]; then wait -n 2>/dev/null || wait; running=$((running-1)); fi
+  done <<< "$names"
+  wait
+}
+
+# --- subcommands -------------------------------------------------------------
+cmd_list() {
+  local sel="${1:-all}"
+  printf '%-16s %-18s %s\n' "NAME" "IP" "GROUPS"
+  _select "$sel" | while IFS=$'\t' read -r name ip groups user; do
+    printf '%-16s %-18s %s\n' "$name" "$ip" "$groups"
+  done
+}
+
+cmd_groups() {
+  _all_rows | cut -f3 | tr ',' '\n' | sed '/^$/d' | sort -u
+}
+
+cmd_ping() {
+  local sel="${1:-all}"
+  _select "$sel" | cut -f1 | while IFS= read -r name; do
+    [ -z "$name" ] && continue
+    (
+      if _run_one "$name" true >/dev/null 2>&1; then
+        printf '%s%-14s%s %sOK%s\n' "$c_host" "$name" "$c_reset" "$c_ok" "$c_reset"
+      else
+        printf '%s%-14s%s %sUNREACHABLE%s\n' "$c_host" "$name" "$c_reset" "$c_err" "$c_reset"
+      fi
+    ) &
+  done
+  wait
+}
+
+cmd_run() {
+  local sel="all"
+  # optional -g group / -H host,list / or bare first-arg target
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -g|--group) sel="$2"; shift 2;;
+      -H|--hosts) sel="$2"; shift 2;;
+      --) shift; break;;
+      -*) die "unknown flag: $1";;
+      *) break;;
+    esac
+  done
+  [ $# -ge 1 ] || die "run: missing command"
+  # if selector wasn't set via flag, allow "fleet run <group> <cmd...>" only when
+  # the first token is a known host/group AND more args follow
+  if [ "$sel" = "all" ] && [ $# -ge 2 ]; then
+    if [ -n "$(_select "$1" | cut -f1)" ]; then
+      sel="$1"; shift
+    fi
+  fi
+  _fanout "$sel" "$@"
+}
+
+cmd_ssh() {
+  [ $# -ge 1 ] || die "ssh: missing host"
+  local name="$1"; shift
+  local target; target="$(_ssh_target "$name")"
+  if [ $# -eq 0 ]; then
+    exec ssh $SSH_OPTS -o BatchMode=no -t "$target"
+  else
+    exec ssh $SSH_OPTS "$target" -- "$@"
+  fi
+}
+
+cmd_copy() {
+  local sel="all"
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -g|--group) sel="$2"; shift 2;;
+      -H|--hosts) sel="$2"; shift 2;;
+      *) break;;
+    esac
+  done
+  [ $# -eq 2 ] || die "copy: usage: fleet copy [-g grp] SRC DEST"
+  local src="$1" dest="$2"
+  _select "$sel" | cut -f1 | while IFS= read -r name; do
+    [ -z "$name" ] && continue
+    (
+      local target; target="$(_ssh_target "$name")"
+      if scp $SSH_OPTS -q "$src" "$target:$dest" 2>&1; then
+        printf '%s%-14s%s %scopied%s -> %s\n' "$c_host" "$name" "$c_reset" "$c_ok" "$c_reset" "$dest"
+      else
+        printf '%s%-14s%s %sfailed%s\n' "$c_host" "$name" "$c_reset" "$c_err" "$c_reset"
+      fi
+    ) &
+  done
+  wait
+}
+
+cmd_gpu()    { _fanout "${1:-gpu}" "nvidia-smi --query-gpu=index,name,utilization.gpu,memory.used,memory.total,temperature.gpu --format=csv,noheader"; }
+cmd_status() { _fanout "${1:-all}" 'echo "$(uptime) | disk / $(df -h / | awk "NR==2{print \$5\" used, \"\$4\" free\"}")"'; }
+
+usage() { sed -n '2,40p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; }
+
+main() {
+  local sub="${1:-}"; shift || true
+  case "$sub" in
+    list)    cmd_list "$@";;
+    groups)  cmd_groups "$@";;
+    ping)    cmd_ping "$@";;
+    run)     cmd_run "$@";;
+    ssh)     cmd_ssh "$@";;
+    copy)    cmd_copy "$@";;
+    gpu)     cmd_gpu "$@";;
+    status)  cmd_status "$@";;
+    ip)      _host_ip "${1:-}";;
+    ""|-h|--help|help) usage;;
+    *) die "unknown subcommand: $sub (try: fleet help)";;
+  esac
+}
+main "$@"

@@ -1,0 +1,25 @@
+# Fleet inventory — one host per line.
+# Format:  name  ip  groups[,comma,separated]  [user]
+#   - name    : short alias used by the `fleet` CLI and ssh/config
+#   - ip       : reachable address (these are Tailscale 100.x addresses)
+#   - groups   : comma-separated tags; every host is implicitly in `all`
+#   - user     : (optional) ssh user for this host; overrides FLEET_SSH_USER
+#
+# Columns are whitespace-separated. Lines starting with # are ignored.
+# Edit groups/users to match reality. Keep this file in git (no secrets here).
+#
+# name            ip                groups                    user
+aiapi             100.87.7.40       manager,all
+vps-custmer       100.64.137.68     vps,all
+vpscld            100.99.240.28     vps,all
+vps-gra6          100.101.47.112    vps,all
+vpsall            100.68.77.46      vps,all
+vps-office        100.85.35.45      vps,all
+openwebui-vps     100.115.82.76     vps,app,all
+nerve-hub         100.89.89.47      app,all
+arcai             100.81.132.108    app,gpu,all
+vps-dioneto       100.106.171.90    vps,all
+storai            100.92.89.14      storage,all
+dgxmain           100.124.217.84    dgx,gpu,all
+dgxsec            100.78.185.72     dgx,gpu,all
+5060ihome         100.90.81.47      gpu,home,all
