@@ -1,0 +1,7 @@
+[Unit]
+Description=STOCKMIND autonomous paper-trader (SIMULATION ONLY)
+After=network-online.target
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/quant/agent_trader
+ExecStart=/opt/quant/venv/bin/python /opt/quant/agent_trader/stockmind_trader.py --once

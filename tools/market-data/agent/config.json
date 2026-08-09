@@ -1,0 +1,32 @@
+{
+ "gateway_url": "http://100.89.89.47:8899",
+ "model": "auto",
+ "data_dir": "/opt/bucket_restore",
+ "capital": 100000,
+ "cost_bps": 5,
+ "max_gross": 1.5,
+ "max_name": 0.25,
+ "universe": {
+  "SPY":  ["world_indices", "sp500_us"],
+  "QQQ":  ["world_indices", "nasdaq_us"],
+  "IWM":  ["world_indices", "russell2000_us"],
+  "XLK":  ["sectors", "tech"],
+  "XLV":  ["sectors", "healthcare"],
+  "XLF":  ["sectors", "financials"],
+  "XLE":  ["sectors", "energy"],
+  "XLI":  ["sectors", "industrials"],
+  "XLP":  ["sectors", "cons_staples"],
+  "XLU":  ["sectors", "utilities"],
+  "XLY":  ["sectors", "cons_discretionary"],
+  "XLB":  ["sectors", "materials"],
+  "XLRE": ["sectors", "real_estate"],
+  "GLD":  ["commodities", "gold"],
+  "SLV":  ["commodities", "silver"],
+  "USO":  ["commodities", "wti_oil"],
+  "CPER": ["commodities", "copper"],
+  "TLT":  ["bonds_credit", "tlt_20y_treasury"],
+  "IEF":  ["bonds_credit", "ief_7_10y_treasury"],
+  "HYG":  ["bonds_credit", "hyg_high_yield"],
+  "BTC":  ["crypto", "bitcoin"]
+ }
+}
