@@ -54,7 +54,10 @@ class H(BaseHTTPRequestHandler):
             elif self.path == '/api/trade':
                 self._s(200, arena.manual_trade(int(b['id']), {k: float(v) for k, v in b.get('targets', {}).items()}))
             elif self.path == '/api/step':
-                self._s(200, arena.step_all())
+                if self.headers.get('X-Admin-Token', '') != os.environ.get('ADMIN_TOKEN', '__disabled__'):
+                    self._s(403, {'error': 'admin only'})
+                else:
+                    self._s(200, arena.step_all())
             else: self._s(404, {'error': 'not found'})
         except Exception as e: self._s(500, {'error': str(e)})
 
