@@ -115,7 +115,7 @@ def ask_brain(snap, ctx, st, prices):
     req = urllib.request.Request(GATEWAY.rstrip('/')+'/v1/chat/completions', data=body,
                                  headers={'Authorization': f'Bearer {GKEY}', 'Content-Type': 'application/json'})
     try:
-        r = urllib.request.urlopen(req, timeout=60)
+        r = urllib.request.urlopen(req, timeout=120)
         txt = json.loads(r.read())['choices'][0]['message']['content']
         i, j = txt.find('{'), txt.rfind('}')
         dec = json.loads(txt[i:j+1])
@@ -144,6 +144,8 @@ def cycle():
     if not prices: log('no prices — datalake unreachable'); return
     eq0 = equity(st, prices)
     dec, brain = ask_brain(snap, ctx, st, prices)
+    if dec is None:
+        dec, brain = ask_brain(snap, ctx, st, prices)   # one retry on transient gateway 429/empties
     if dec is None:
         log(f"AI brain unavailable ({brain}); using rule fallback")
         dec, brain = rule_fallback(snap, ctx), 'rule-fallback'
