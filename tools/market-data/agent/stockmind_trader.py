@@ -110,20 +110,24 @@ def ask_brain(snap, ctx, st, prices):
               "Respect trend (prefer names above their 150d MA), manage risk when breadth is weak, VIX high, or HYG below its 150d MA. "
               "Return STRICT JSON only: {\"targets\":{\"TICKER\":weight,...},\"thesis\":\"...\",\"risk\":\"...\"}. No prose.")
     usr = json.dumps({'context': ctx, 'assets': snap, 'current_weights': port, 'tickers': list(prices)}, separators=(',',':'))
-    body = json.dumps({'model': MODEL, 'temperature': 0.3, 'max_tokens': 700,
-                       'messages': [{'role':'system','content':sysmsg},{'role':'user','content':usr}]}).encode()
-    req = urllib.request.Request(GATEWAY.rstrip('/')+'/v1/chat/completions', data=body,
-                                 headers={'Authorization': f'Bearer {GKEY}', 'Content-Type': 'application/json'})
-    try:
-        r = urllib.request.urlopen(req, timeout=120)
-        txt = json.loads(r.read())['choices'][0]['message']['content']
-        i, j = txt.find('{'), txt.rfind('}')
-        dec = json.loads(txt[i:j+1])
-        if 'targets' in dec and isinstance(dec['targets'], dict):
-            return dec, MODEL
-    except Exception as e:
-        return None, f'brain error: {type(e).__name__}: {str(e)[:80]}'
-    return None, 'brain returned no valid targets'
+    last = 'no response'
+    for m in [MODEL] + [x for x in CFG.get('fallback_models', ['minimax-m3', 'gemini-3.5-flash', 'glm-4.7']) if x != MODEL]:
+        body = json.dumps({'model': m, 'temperature': 0.3, 'max_tokens': 700, 'stream': False,
+                           'messages': [{'role':'system','content':sysmsg},{'role':'user','content':usr}]}).encode()
+        req = urllib.request.Request(GATEWAY.rstrip('/')+'/v1/chat/completions', data=body,
+                                     headers={'Authorization': f'Bearer {GKEY}', 'Content-Type': 'application/json'})
+        try:
+            raw = urllib.request.urlopen(req, timeout=90).read()
+            if not raw: last = f'{m}: empty'; continue
+            txt = (json.loads(raw)['choices'][0]['message'].get('content') or '')
+            i, j = txt.find('{'), txt.rfind('}')
+            if i >= 0:
+                dec = json.loads(txt[i:j+1])
+                if isinstance(dec.get('targets'), dict): return dec, m
+            last = f'{m}: no targets'
+        except Exception as e:
+            last = f'{m}: {type(e).__name__}'
+    return None, f'brain error: {last}'
 
 def rule_fallback(snap, ctx):
     """Trend/regime rule so the sim always acts even without the LLM."""
@@ -143,9 +147,7 @@ def cycle():
     st = load_state(); snap, prices, ctx = snapshot()
     if not prices: log('no prices — datalake unreachable'); return
     eq0 = equity(st, prices)
-    dec, brain = ask_brain(snap, ctx, st, prices)
-    if dec is None:
-        dec, brain = ask_brain(snap, ctx, st, prices)   # one retry on transient gateway 429/empties
+    dec, brain = ask_brain(snap, ctx, st, prices)   # tries auto + fallback models internally
     if dec is None:
         log(f"AI brain unavailable ({brain}); using rule fallback")
         dec, brain = rule_fallback(snap, ctx), 'rule-fallback'

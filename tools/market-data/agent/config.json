@@ -1,8 +1,10 @@
 {
+ "name": "BITFIN",
  "gateway_url": "http://100.89.89.47:8899",
  "model": "auto",
+ "fallback_models": ["minimax-m3", "gemini-3.5-flash", "glm-4.7"],
  "data_dir": "/opt/bucket_restore",
- "capital": 100000,
+ "capital": 10000,
  "cost_bps": 5,
  "max_gross": 1.5,
  "max_name": 0.25,
