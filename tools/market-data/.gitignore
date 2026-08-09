@@ -2,3 +2,6 @@
 /findings.json
 /dashboard.html
 __pycache__/
+/signals.parquet
+/dashboard2.html
+/findings2.json

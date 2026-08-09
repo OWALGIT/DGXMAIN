@@ -45,6 +45,9 @@ Credentials are **never** hard-coded — every script reads them from the
 | `build_panel.py` | assemble a unified **daily panel** (2023→today) of ~60 asset + event-signal series → `panel.parquet` |
 | `analyze.py` | correlations, systemic co-movement, crisis timeline, **lead-lag** cross-correlation, event studies → `findings.json` |
 | `build_dashboard.py` | render `findings.json` into a self-contained `dashboard.html` |
+| `cross_domain.py` | build ~28 event signals from 9 domains (weather, war, shipping, earthquakes, space weather, climate, attention, uncertainty, news) and cross-correlate each against 25 markets at 1–10 day leads → `findings2.json` |
+| `significance.py` | circular-rotation **bootstrap** (500×) that separates robust leads from data-mined mirages (sparse-signal + multiple-testing artifacts) |
+| `build_dashboard2.py` | render the cross-domain signal-vs-mirage findings into `dashboard2.html` |
 
 ```bash
 python3 inventory.py
