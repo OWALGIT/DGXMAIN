@@ -1,0 +1,360 @@
+<title>Cross-Asset Contagion Desk — 2023→2026</title>
+<style>
+:root{
+  --bg:#f4f5f7; --panel:#ffffff; --panel2:#eef0f4; --ink:#171b22; --muted:#5b6472;
+  --line:#d5d9e0; --grid:#e6e9ee; --accent:#b8860b; --accent2:#0e7490;
+  --pos:#1a7f37; --neg:#c4341c; --hi:#0e7490; --shadow:0 1px 3px rgba(20,30,50,.08),0 8px 24px rgba(20,30,50,.06);
+  --mono:ui-monospace,"SF Mono","Cascadia Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+}
+:root:not([data-theme="light"]){ }
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0a0d13; --panel:#121722; --panel2:#0f141d; --ink:#d3dae6; --muted:#7f8b9e;
+  --line:#232c3a; --grid:#1b2330; --accent:#e8b339; --accent2:#4dd0e1;
+  --pos:#3fb950; --neg:#f85149; --hi:#4dd0e1; --shadow:0 1px 0 rgba(255,255,255,.03),0 12px 40px rgba(0,0,0,.5);
+}}
+:root[data-theme="dark"]{
+  --bg:#0a0d13; --panel:#121722; --panel2:#0f141d; --ink:#d3dae6; --muted:#7f8b9e;
+  --line:#232c3a; --grid:#1b2330; --accent:#e8b339; --accent2:#4dd0e1;
+  --pos:#3fb950; --neg:#f85149; --hi:#4dd0e1; --shadow:0 1px 0 rgba(255,255,255,.03),0 12px 40px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased;padding:0 0 80px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+h1,h2,h3{text-wrap:balance;margin:0}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)}
+.lbl{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.pos{color:var(--pos)} .neg{color:var(--neg)} .hi{color:var(--hi)}
+
+/* header */
+header{border-bottom:1px solid var(--line);background:
+  linear-gradient(180deg,color-mix(in srgb,var(--accent) 7%,var(--panel)),var(--panel));
+  padding:30px 0 26px;margin-bottom:26px}
+header .wrap{display:flex;flex-direction:column;gap:14px}
+h1{font-size:clamp(26px,4.3vw,40px);font-weight:750;letter-spacing:-.02em;line-height:1.02}
+.sub{color:var(--muted);max-width:60ch;font-size:15.5px}
+.ticker{display:flex;flex-wrap:wrap;gap:7px;margin-top:4px}
+.chip{font-family:var(--mono);font-size:11.5px;border:1px solid var(--line);border-radius:999px;
+  padding:4px 11px;color:var(--muted);background:var(--panel2)}
+.chip b{color:var(--ink)}
+
+/* kpi row */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:0 0 30px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:15px 16px;box-shadow:var(--shadow)}
+.kpi .n{font-family:var(--mono);font-size:26px;font-weight:650;letter-spacing:-.02em;line-height:1.1}
+.kpi .k{margin-top:5px}
+.kpi .d{color:var(--muted);font-size:12.5px;margin-top:7px;line-height:1.4}
+
+section{margin:0 0 40px}
+.shead{display:flex;align-items:baseline;gap:12px;margin-bottom:6px;flex-wrap:wrap}
+.shead h2{font-size:21px;font-weight:700;letter-spacing:-.01em}
+.shead .n{font-family:var(--mono);color:var(--accent);font-size:13px}
+.note{color:var(--muted);font-size:13.5px;max-width:74ch;margin:2px 0 16px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin:6px 2px 0;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:11px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.chartwrap{width:100%;overflow-x:auto}
+svg{display:block;width:100%;height:auto}
+text{font-family:var(--mono);fill:var(--muted)}
+
+/* tables */
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--grid);font-variant-numeric:tabular-nums;font-family:var(--mono)}
+th:first-child,td:first-child{text-align:left;font-family:var(--sans)}
+thead th{color:var(--muted);font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;border-bottom:1px solid var(--line)}
+tbody tr:hover{background:var(--panel2)}
+.tag{font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--line)}
+
+.ll-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.ll-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 14px;box-shadow:var(--shadow)}
+.ll-card .t{font-size:13px;font-weight:650;margin-bottom:2px}
+.ll-card .m{font-family:var(--mono);font-size:12px;color:var(--muted);margin-bottom:8px}
+.finding{border-left:2px solid var(--accent);padding:2px 0 2px 15px;margin:14px 0;color:var(--ink)}
+.finding b{color:var(--accent)}
+footer{color:var(--muted);font-size:12.5px;border-top:1px solid var(--line);padding-top:18px;margin-top:10px;font-family:var(--mono)}
+@media(max-width:820px){.kpis{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}.ll-grid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:no-preference){.kpi,.panel{transition:transform .15s ease}}
+</style>
+
+<header><div class="wrap">
+  <div class="eyebrow">Cross-Asset Contagion Desk</div>
+  <h1>How shocks travel through markets</h1>
+  <p class="sub">A single unified daily panel — equities, volatility, rates, credit, commodities, FX, crypto, and geopolitical event signals — stitched together to trace how an external shock in one corner of the world propagates into prices somewhere else. The butterfly effect, quantified.</p>
+  <div class="ticker" id="ticker"></div>
+</div></header>
+
+<div class="wrap">
+  <div class="kpis" id="kpis"></div>
+
+  <section id="s-timeline">
+    <div class="shead"><span class="n">01</span><h2>The stress timeline</h2></div>
+    <p class="note">S&amp;P 500 (rebased to 100) against the VIX, 2023→today, with four external shocks marked. Read it as cause and reaction: where the amber VIX line spikes, equities buckle — but each shock hits a <em>different</em> set of assets hardest.</p>
+    <div class="panel"><div class="chartwrap"><svg id="timeline" viewBox="0 0 1120 420"></svg></div>
+      <div class="legend"><span><i style="background:var(--accent2)"></i>S&amp;P 500 (rebased)</span><span><i style="background:var(--accent)"></i>VIX</span><span><i style="background:var(--neg)"></i>shock event</span></div>
+    </div>
+  </section>
+
+  <section id="s-butterfly">
+    <div class="shead"><span class="n">02</span><h2>The butterfly: Red Sea → the world's cargo</h2></div>
+    <p class="note">Houthi attacks on shipping turned the Bab el-Mandeb Strait — the Red Sea gateway carrying ~12% of global trade — into a no-go zone. Container traffic there collapsed while the Cape of Good Hope detour surged. This is a physical shock you can watch propagate, days before it shows up in oil, freight, and supply-chain-sensitive equities.</p>
+    <div class="panel"><div class="chartwrap"><svg id="butterfly" viewBox="0 0 1120 380"></svg></div>
+      <div class="legend"><span><i style="background:var(--neg)"></i>Bab el-Mandeb (Red Sea) container transits</span><span><i style="background:var(--pos)"></i>Cape of Good Hope (detour)</span></div>
+    </div>
+    <div class="finding" id="butterfly-finding"></div>
+  </section>
+
+  <section id="s-corr">
+    <div class="shead"><span class="n">03</span><h2>The correlation grid</h2></div>
+    <p class="note">Daily co-movement across 24 instruments (returns; rates &amp; VIX as daily change), full window. Blue = move together, red = move opposite. This is the map of which levers are secretly the same lever.</p>
+    <div class="panel"><div class="chartwrap"><svg id="heatmap" viewBox="0 0 1120 640"></svg></div></div>
+  </section>
+
+  <section id="s-regime">
+    <div class="shead"><span class="n">04</span><h2>When everything becomes one trade</h2></div>
+    <p class="note">Average pairwise correlation across nine global equity indices, on a rolling ~2-month window. When this line climbs, diversification quietly stops working — regional markets stop being regional and start moving as a single risk asset. The peaks are the regimes where contagion is easiest.</p>
+    <div class="panel"><div class="chartwrap"><svg id="regime" viewBox="0 0 1120 300"></svg></div></div>
+  </section>
+
+  <section id="s-leadlag">
+    <div class="shead"><span class="n">05</span><h2>Lead &amp; lag — who moves first</h2></div>
+    <p class="note">Cross-correlation of an event signal against an asset at day-offsets −10…+10. A bar to the right of zero means the <em>signal leads</em> the asset by that many days; to the left, the market moved first and the signal only caught up. The honest result: at daily frequency most of these are weak — the clean propagation lives in discrete shocks (§02, §06), not in a steady daily rhythm.</p>
+    <div class="ll-grid" id="leadlag"></div>
+  </section>
+
+  <section id="s-events">
+    <div class="shead"><span class="n">06</span><h2>Event studies — the reaction fingerprints</h2></div>
+    <p class="note">Move from 3 days before to 5 days after each shock. Every crisis has a signature: a banking scare crushes oil and lifts gold; a Middle-East war does the opposite to oil; a shipping halt lands on China and freight.</p>
+    <div class="panel" style="overflow-x:auto"><table id="events"></table></div>
+  </section>
+
+  <section id="s-safe">
+    <div class="shead"><span class="n">07</span><h2>What actually protects you</h2></div>
+    <div class="grid2">
+      <div class="panel"><div class="lbl" id="safe-desc" style="margin-bottom:12px"></div><table id="safe"></table></div>
+      <div class="panel">
+        <div class="lbl" style="margin-bottom:12px">Strongest linkages (|r|)</div>
+        <table id="topcorr"></table>
+      </div>
+    </div>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+const D={"meta":{"rows":1316,"cols":60,"start":"2023-01-01","end":"2026-08-08"},"corr":{"labels":["SPX","NDX","RUT","HangSeng","Nikkei","DAX","China_Internet","SEC_tech","SEC_energy","WTI","Brent","Gold","Copper","DXY","HYG","TLT","UST10Y","VIX","BTC","ETH","USDJPY","USDCNY","NatGas","Wheat"],"matrix":[[1.0,0.963,0.822,0.091,0.076,0.387,0.413,0.897,0.37,0.0,0.003,0.159,0.268,-0.109,0.727,0.122,-0.041,-0.826,0.365,0.404,-0.034,-0.001,0.084,-0.01],[0.963,1.0,0.754,0.108,0.083,0.366,0.417,0.947,0.247,-0.016,-0.015,0.145,0.249,-0.1,0.68,0.11,-0.04,-0.774,0.373,0.414,-0.033,0.002,0.061,-0.018],[0.822,0.754,1.0,0.052,0.064,0.377,0.382,0.671,0.418,-0.007,-0.003,0.178,0.249,-0.165,0.705,0.16,-0.097,-0.691,0.397,0.419,-0.042,0.009,0.039,-0.034],[0.091,0.108,0.052,1.0,0.278,0.261,0.596,0.114,0.052,0.05,0.045,0.141,0.245,-0.118,0.048,-0.068,0.048,-0.04,0.069,0.086,-0.123,-0.102,0.009,0.03],[0.076,0.083,0.064,0.278,1.0,0.357,0.053,0.116,-0.03,-0.038,-0.067,0.131,0.133,-0.013,-0.008,-0.1,0.083,-0.069,-0.03,-0.012,0.147,-0.068,-0.018,0.008],[0.387,0.366,0.377,0.261,0.357,1.0,0.279,0.339,0.021,-0.171,-0.184,0.193,0.33,-0.143,0.323,0.04,-0.038,-0.275,0.138,0.162,0.038,-0.035,-0.023,-0.05],[0.413,0.417,0.382,0.596,0.053,0.279,1.0,0.358,0.192,-0.004,0.005,0.186,0.339,-0.293,0.351,0.045,-0.072,-0.349,0.228,0.224,-0.072,-0.007,-0.007,0.002],[0.897,0.947,0.671,0.114,0.116,0.339,0.358,1.0,0.207,-0.002,0.0,0.156,0.262,-0.077,0.586,0.086,-0.023,-0.717,0.33,0.37,-0.021,0.004,0.048,-0.027],[0.37,0.247,0.418,0.052,-0.03,0.021,0.192,0.207,1.0,0.587,0.596,0.021,0.194,0.013,0.31,-0.108,0.192,-0.381,0.121,0.148,-0.003,-0.02,0.184,0.055],[0.0,-0.016,-0.007,0.05,-0.038,-0.171,-0.004,-0.002,0.587,1.0,0.94,-0.031,0.072,0.087,-0.007,-0.181,0.23,-0.001,0.006,0.018,0.009,-0.013,0.103,0.127],[0.003,-0.015,-0.003,0.045,-0.067,-0.184,0.005,0.0,0.596,0.94,1.0,-0.058,0.064,0.096,0.007,-0.192,0.24,-0.012,0.008,0.016,0.007,0.003,0.101,0.14],[0.159,0.145,0.178,0.141,0.131,0.193,0.186,0.156,0.021,-0.031,-0.058,1.0,0.39,-0.404,0.164,0.173,-0.241,-0.096,0.14,0.133,-0.02,0.018,-0.049,0.073],[0.268,0.249,0.249,0.245,0.133,0.33,0.339,0.262,0.194,0.072,0.064,0.39,1.0,-0.282,0.182,0.033,-0.029,-0.242,0.122,0.137,0.014,0.001,-0.115,0.041],[-0.109,-0.1,-0.165,-0.118,-0.013,-0.143,-0.293,-0.077,0.013,0.087,0.096,-0.404,-0.282,1.0,-0.315,-0.312,0.425,0.051,-0.094,-0.091,0.018,-0.044,0.07,-0.008],[0.727,0.68,0.705,0.048,-0.008,0.323,0.351,0.586,0.31,-0.007,0.007,0.164,0.182,-0.315,1.0,0.468,-0.415,-0.619,0.27,0.29,-0.007,0.035,0.083,-0.035],[0.122,0.11,0.16,-0.068,-0.1,0.04,0.045,0.086,-0.108,-0.181,-0.192,0.173,0.033,-0.312,0.468,1.0,-0.914,-0.033,-0.016,-0.01,0.015,0.051,-0.024,0.038],[-0.041,-0.04,-0.097,0.048,0.083,-0.038,-0.072,-0.023,0.192,0.23,0.24,-0.241,-0.029,0.425,-0.415,-0.914,1.0,-0.045,0.016,0.019,-0.013,-0.044,0.065,-0.028],[-0.826,-0.774,-0.691,-0.04,-0.069,-0.275,-0.349,-0.717,-0.381,-0.001,-0.012,-0.096,-0.242,0.051,-0.619,-0.033,-0.045,1.0,-0.331,-0.364,0.013,0.026,-0.1,0.018],[0.365,0.373,0.397,0.069,-0.03,0.138,0.228,0.33,0.121,0.006,0.008,0.14,0.122,-0.094,0.27,-0.016,0.016,-0.331,1.0,0.814,-0.043,-0.008,0.035,0.017],[0.404,0.414,0.419,0.086,-0.012,0.162,0.224,0.37,0.148,0.018,0.016,0.133,0.137,-0.091,0.29,-0.01,0.019,-0.364,0.814,1.0,0.016,-0.022,0.033,-0.004],[-0.034,-0.033,-0.042,-0.123,0.147,0.038,-0.072,-0.021,-0.003,0.009,0.007,-0.02,0.014,0.018,-0.007,0.015,-0.013,0.013,-0.043,0.016,1.0,0.183,0.007,-0.034],[-0.001,0.002,0.009,-0.102,-0.068,-0.035,-0.007,0.004,-0.02,-0.013,0.003,0.018,0.001,-0.044,0.035,0.051,-0.044,0.026,-0.008,-0.022,0.183,1.0,0.021,-0.079],[0.084,0.061,0.039,0.009,-0.018,-0.023,-0.007,0.048,0.184,0.103,0.101,-0.049,-0.115,0.07,0.083,-0.024,0.065,-0.1,0.035,0.033,0.007,0.021,1.0,0.019],[-0.01,-0.018,-0.034,0.03,0.008,-0.05,0.002,-0.027,0.055,0.127,0.14,0.073,0.041,-0.008,-0.035,0.038,-0.028,0.018,0.017,-0.004,-0.034,-0.079,0.019,1.0]]},"top_corr":[{"a":"SPX","b":"NDX","r":0.963},{"a":"NDX","b":"SEC_tech","r":0.947},{"a":"WTI","b":"Brent","r":0.94},{"a":"TLT","b":"UST10Y","r":-0.914},{"a":"SPX","b":"SEC_tech","r":0.897},{"a":"SPX","b":"VIX","r":-0.826},{"a":"SPX","b":"RUT","r":0.822},{"a":"BTC","b":"ETH","r":0.814},{"a":"NDX","b":"VIX","r":-0.774},{"a":"NDX","b":"RUT","r":0.754},{"a":"SPX","b":"HYG","r":0.727},{"a":"SEC_tech","b":"VIX","r":-0.717},{"a":"RUT","b":"HYG","r":0.705},{"a":"RUT","b":"VIX","r":-0.691},{"a":"NDX","b":"HYG","r":0.68}],"syscorr":{"dates":["2023-03-22","2023-03-28","2023-03-31","2023-04-06","2023-04-13","2023-04-19","2023-04-25","2023-04-28","2023-05-04","2023-05-10","2023-05-16","2023-05-19","2023-05-25","2023-06-01","2023-06-07","2023-06-13","2023-06-16","2023-06-23","2023-06-29","2023-07-07","2023-07-13","2023-07-19","2023-07-25","2023-07-28","2023-08-03","2023-08-09","2023-08-15","2023-08-18","2023-08-24","2023-08-30","2023-09-06","2023-09-12","2023-09-15","2023-09-21","2023-09-27","2023-10-03","2023-10-06","2023-10-12","2023-10-18","2023-10-24","2023-10-27","2023-11-02","2023-11-08","2023-11-14","2023-11-17","2023-11-28","2023-12-01","2023-12-07","2023-12-13","2023-12-19","2023-12-22","2023-12-29","2024-01-05","2024-01-11","2024-01-18","2024-01-24","2024-01-30","2024-02-02","2024-02-08","2024-02-14","2024-02-21","2024-02-27","2024-03-01","2024-03-07","2024-03-13","2024-03-19","2024-03-22","2024-03-28","2024-04-04","2024-04-10","2024-04-16","2024-04-19","2024-04-25","2024-05-01","2024-05-07","2024-05-10","2024-05-16","2024-05-22","2024-05-29","2024-06-04","2024-06-07","2024-06-13","2024-06-21","2024-06-27","2024-07-03","2024-07-11","2024-07-17","2024-07-23","2024-07-26","2024-08-01","2024-08-07","2024-08-13","2024-08-16","2024-08-22","2024-08-28","2024-09-04","2024-09-10","2024-09-13","2024-09-19","2024-09-25","2024-10-01","2024-10-04","2024-10-10","2024-10-16","2024-10-22","2024-10-25","2024-10-31","2024-11-06","2024-11-12","2024-11-15","2024-11-21","2024-11-27","2024-12-05","2024-12-11","2024-12-17","2024-12-20","2024-12-31","2025-01-08","2025-01-16","2025-01-23","2025-01-29","2025-02-04","2025-02-07","2025-02-13","2025-02-20","2025-02-26","2025-03-04","2025-03-07","2025-03-13","2025-03-19","2025-03-25","2025-03-28","2025-04-03","2025-04-09","2025-04-15","2025-04-22","2025-04-25","2025-05-01","2025-05-07","2025-05-13","2025-05-16","2025-05-22","2025-05-29","2025-06-04","2025-06-10","2025-06-13","2025-06-24","2025-06-27","2025-07-03","2025-07-10","2025-07-16","2025-07-22","2025-07-25","2025-07-31","2025-08-06","2025-08-12","2025-08-15","2025-08-21","2025-08-27","2025-09-03","2025-09-09","2025-09-12","2025-09-18","2025-09-24","2025-09-30","2025-10-03","2025-10-09","2025-10-15","2025-10-21","2025-10-24","2025-10-30","2025-11-05","2025-11-11","2025-11-14","2025-11-20","2025-11-26","2025-12-04","2025-12-10","2025-12-16","2025-12-19","2025-12-30","2026-01-07","2026-01-13","2026-01-16","2026-01-23","2026-01-29","2026-02-04","2026-02-10","2026-02-13","2026-02-20","2026-02-26","2026-03-04","2026-03-10","2026-03-13","2026-03-19","2026-03-25","2026-03-31","2026-04-07","2026-04-10","2026-04-16","2026-04-22","2026-04-28","2026-05-01","2026-05-07","2026-05-13","2026-05-19","2026-05-22","2026-05-29","2026-06-04","2026-06-10","2026-06-16","2026-06-23","2026-06-26","2026-07-02","2026-07-09","2026-07-15","2026-07-21","2026-07-24","2026-07-30","2026-08-05"],"vals":[0.421,0.382,0.397,0.405,0.391,0.399,0.398,0.411,0.419,0.435,0.422,0.417,0.448,0.484,0.544,0.567,0.544,0.526,0.552,0.59,0.583,0.6,0.571,0.521,0.553,0.566,0.535,0.539,0.498,0.506,0.5,0.509,0.506,0.427,0.462,0.422,0.443,0.51,0.477,0.513,0.519,0.499,0.519,0.482,0.499,0.496,0.484,0.494,0.448,0.435,0.405,0.388,0.387,0.302,0.311,0.305,0.228,0.271,0.216,0.243,0.251,0.302,0.313,0.355,0.382,0.389,0.369,0.363,0.339,0.326,0.352,0.388,0.408,0.432,0.444,0.407,0.409,0.387,0.372,0.393,0.388,0.394,0.384,0.407,0.434,0.436,0.363,0.335,0.339,0.379,0.46,0.437,0.464,0.452,0.45,0.45,0.489,0.492,0.502,0.508,0.541,0.528,0.494,0.497,0.407,0.461,0.448,0.465,0.407,0.409,0.376,0.364,0.359,0.31,0.271,0.28,0.265,0.229,0.265,0.27,0.265,0.24,0.303,0.28,0.279,0.291,0.291,0.323,0.326,0.354,0.368,0.389,0.397,0.546,0.338,0.337,0.35,0.352,0.361,0.369,0.368,0.369,0.373,0.36,0.356,0.363,0.363,0.16,0.458,0.469,0.406,0.405,0.403,0.398,0.463,0.465,0.439,0.41,0.408,0.414,0.365,0.35,0.349,0.345,0.344,0.336,0.314,0.399,0.355,0.361,0.355,0.377,0.363,0.367,0.42,0.384,0.404,0.408,0.402,0.397,0.398,0.353,0.373,0.367,0.372,0.359,0.334,0.341,0.27,0.303,0.301,0.394,0.373,0.4,0.397,0.425,0.465,0.485,0.539,0.549,0.558,0.556,0.555,0.57,0.56,0.565,0.586,0.583,0.582,0.55,0.526,0.506,0.45,0.448,0.422,0.441,0.443,0.402,0.401,0.366]},"timeline":{"dates":["2023-01-01","2023-01-08","2023-01-15","2023-01-22","2023-01-29","2023-02-05","2023-02-12","2023-02-19","2023-02-26","2023-03-05","2023-03-12","2023-03-19","2023-03-26","2023-04-02","2023-04-09","2023-04-16","2023-04-23","2023-04-30","2023-05-07","2023-05-14","2023-05-21","2023-05-28","2023-06-04","2023-06-11","2023-06-18","2023-06-25","2023-07-02","2023-07-09","2023-07-16","2023-07-23","2023-07-30","2023-08-06","2023-08-13","2023-08-20","2023-08-27","2023-09-03","2023-09-10","2023-09-17","2023-09-24","2023-10-01","2023-10-08","2023-10-15","2023-10-22","2023-10-29","2023-11-05","2023-11-12","2023-11-19","2023-11-26","2023-12-03","2023-12-10","2023-12-17","2023-12-24","2023-12-31","2024-01-07","2024-01-14","2024-01-21","2024-01-28","2024-02-04","2024-02-11","2024-02-18","2024-02-25","2024-03-03","2024-03-10","2024-03-17","2024-03-24","2024-03-31","2024-04-07","2024-04-14","2024-04-21","2024-04-28","2024-05-05","2024-05-12","2024-05-19","2024-05-26","2024-06-02","2024-06-09","2024-06-16","2024-06-23","2024-06-30","2024-07-07","2024-07-14","2024-07-21","2024-07-28","2024-08-04","2024-08-11","2024-08-18","2024-08-25","2024-09-01","2024-09-08","2024-09-15","2024-09-22","2024-09-29","2024-10-06","2024-10-13","2024-10-20","2024-10-27","2024-11-03","2024-11-10","2024-11-17","2024-11-24","2024-12-01","2024-12-08","2024-12-15","2024-12-22","2024-12-29","2025-01-05","2025-01-12","2025-01-19","2025-01-26","2025-02-02","2025-02-09","2025-02-16","2025-02-23","2025-03-02","2025-03-09","2025-03-16","2025-03-23","2025-03-30","2025-04-06","2025-04-13","2025-04-20","2025-04-27","2025-05-04","2025-05-11","2025-05-18","2025-05-25","2025-06-01","2025-06-08","2025-06-15","2025-06-22","2025-06-29","2025-07-06","2025-07-13","2025-07-20","2025-07-27","2025-08-03","2025-08-10","2025-08-17","2025-08-24","2025-08-31","2025-09-07","2025-09-14","2025-09-21","2025-09-28","2025-10-05","2025-10-12","2025-10-19","2025-10-26","2025-11-02","2025-11-09","2025-11-16","2025-11-23","2025-11-30","2025-12-07","2025-12-14","2025-12-21","2025-12-28","2026-01-04","2026-01-11","2026-01-18","2026-01-25","2026-02-01","2026-02-08","2026-02-15","2026-02-22","2026-03-01","2026-03-08","2026-03-15","2026-03-22","2026-03-29","2026-04-05","2026-04-12","2026-04-19","2026-04-26","2026-05-03","2026-05-10","2026-05-17","2026-05-24","2026-05-31","2026-06-07","2026-06-14","2026-06-21","2026-06-28","2026-07-05","2026-07-12","2026-07-19","2026-07-26","2026-08-02","2026-08-09"],"spx":[null,101.9,104.6,103.9,106.4,108.2,107.0,106.7,103.8,105.8,101.0,102.4,103.8,107.5,107.3,108.2,108.1,109.0,108.2,107.8,109.6,110.0,112.0,112.4,115.3,113.7,116.4,115.0,117.8,118.6,119.8,117.1,116.7,114.3,115.2,118.1,116.6,116.4,113.0,112.1,112.7,113.2,110.5,107.7,114.0,115.5,118.0,119.2,120.1,120.4,123.4,124.3,124.7,122.8,125.1,126.6,127.9,129.7,131.4,130.9,133.1,134.3,134.0,133.8,136.9,137.4,136.1,134.0,129.9,133.4,134.1,136.6,138.7,138.7,138.0,139.8,142.0,142.9,142.8,145.6,146.8,144.0,142.8,139.8,139.7,145.2,147.3,147.7,141.4,147.1,149.1,150.1,150.4,152.1,153.4,151.9,149.8,156.8,153.5,156.1,157.7,159.3,158.2,155.1,156.1,155.4,152.4,156.8,159.5,158.0,157.6,159.9,157.2,155.7,150.9,147.5,148.2,145.9,132.7,140.3,138.1,144.5,148.7,148.0,155.8,151.7,154.6,156.9,156.3,156.1,161.4,164.2,163.7,164.7,167.1,163.1,167.1,168.7,169.1,168.9,169.5,172.2,174.3,173.7,175.6,171.3,174.3,177.6,178.9,176.0,176.1,172.7,179.1,179.7,178.5,178.7,181.2,179.3,182.2,181.5,180.8,181.5,181.3,178.8,180.7,179.9,176.2,173.4,170.1,166.5,172.1,178.3,186.3,187.4,189.1,193.5,193.7,195.4,198.2,193.1,194.3,196.1,192.3,195.7,198.1,195.0,193.8,195.9,202.9],"vix":[null,21.13,18.35,19.85,18.51,18.33,20.53,20.02,21.67,18.49,24.8,25.51,21.74,18.7,18.4,17.07,16.77,15.78,17.19,17.03,16.81,17.95,14.6,13.83,13.54,13.44,13.59,14.83,13.34,13.6,13.33,17.1,14.84,17.3,15.68,13.09,13.84,13.79,17.2,17.52,17.45,19.32,21.71,21.27,14.91,14.17,13.8,12.46,12.63,12.35,12.28,13.03,12.45,13.35,12.7,13.3,13.26,13.85,12.93,14.24,13.75,13.11,14.74,14.41,13.06,13.01,16.03,17.31,18.71,15.03,13.49,12.55,11.99,11.93,12.92,12.22,12.66,13.2,12.44,12.48,12.46,16.52,16.39,23.39,20.37,14.8,15.86,15.0,22.38,16.56,16.15,16.96,19.21,20.46,18.03,20.33,21.88,14.94,16.14,15.24,13.51,12.77,13.81,18.36,15.95,16.13,19.54,15.97,14.85,16.43,16.54,14.77,18.21,19.63,23.37,21.77,19.28,21.65,45.31,37.56,29.65,24.84,22.68,21.9,17.24,22.29,18.57,16.77,20.82,20.62,16.32,16.38,16.4,16.41,14.93,20.38,15.15,15.09,14.22,15.36,15.18,14.76,15.45,15.29,16.65,21.66,20.78,16.37,17.44,19.08,19.83,23.43,16.35,15.41,15.74,14.91,13.6,14.51,14.49,15.86,16.09,17.44,20.37,20.6,19.09,19.86,29.49,27.19,26.78,31.05,23.87,19.23,17.48,18.71,16.99,17.19,18.43,16.7,15.32,21.51,17.68,16.4,18.41,16.15,15.03,18.77,18.58,15.99,14.9],"dd":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],"redsea":[21.0,14.0,14.0,22.0,16.0,14.0,18.0,12.0,17.0,12.0,12.0,24.0,13.0,14.0,17.0,19.0,15.0,20.0,15.0,19.0,20.0,18.0,20.0,15.0,29.0,22.0,17.0,16.0,16.0,20.0,24.0,18.0,21.0,16.0,20.0,21.0,17.0,16.0,21.0,19.0,17.0,20.0,18.0,15.0,19.0,16.0,23.0,18.0,18.0,15.0,10.0,6.0,5.0,6.0,2.0,4.0,4.0,4.0,5.0,12.0,4.0,6.0,6.0,6.0,3.0,6.0,4.0,4.0,5.0,5.0,4.0,4.0,4.0,2.0,4.0,4.0,9.0,7.0,6.0,8.0,6.0,3.0,4.0,2.0,3.0,7.0,8.0,5.0,6.0,8.0,8.0,4.0,5.0,7.0,8.0,3.0,8.0,3.0,7.0,13.0,4.0,8.0,7.0,3.0,6.0,4.0,11.0,7.0,10.0,10.0,6.0,3.0,9.0,6.0,5.0,5.0,7.0,9.0,4.0,9.0,8.0,6.0,5.0,5.0,9.0,7.0,10.0,5.0,10.0,2.0,5.0,5.0,8.0,4.0,11.0,8.0,5.0,4.0,9.0,6.0,5.0,7.0,8.0,6.0,4.0,5.0,10.0,4.0,5.0,8.0,6.0,10.0,10.0,8.0,7.0,6.0,6.0,8.0,5.0,3.0,5.0,1.0,9.0,4.0,11.0,5.0,10.0,2.0,7.0,7.0,7.0,5.0,7.0,2.0,6.0,7.0,4.0,4.0,2.0,5.0,7.0,6.0,3.0,6.0,7.0,3.0,5.0,7.0,null],"cape":[4.0,6.0,5.0,3.0,5.0,8.0,2.0,2.0,6.0,8.0,2.0,6.0,0.0,5.0,6.0,3.0,4.0,2.0,1.0,5.0,4.0,2.0,2.0,6.0,3.0,2.0,6.0,1.0,7.0,7.0,7.0,1.0,7.0,8.0,10.0,5.0,2.0,1.0,4.0,9.0,4.0,7.0,4.0,0.0,5.0,3.0,5.0,3.0,3.0,12.0,6.0,7.0,18.0,10.0,9.0,19.0,19.0,18.0,12.0,21.0,19.0,26.0,18.0,15.0,23.0,20.0,14.0,25.0,23.0,27.0,21.0,21.0,25.0,13.0,7.0,23.0,18.0,20.0,15.0,1.0,28.0,24.0,0.0,21.0,25.0,11.0,20.0,21.0,16.0,16.0,24.0,4.0,24.0,21.0,14.0,11.0,20.0,22.0,17.0,17.0,15.0,18.0,13.0,15.0,16.0,22.0,27.0,18.0,17.0,16.0,18.0,26.0,23.0,15.0,24.0,25.0,14.0,8.0,16.0,18.0,17.0,21.0,29.0,8.0,19.0,31.0,15.0,14.0,22.0,29.0,24.0,13.0,42.0,34.0,24.0,35.0,11.0,17.0,13.0,13.0,24.0,22.0,19.0,19.0,14.0,14.0,16.0,17.0,16.0,17.0,12.0,14.0,17.0,18.0,18.0,13.0,21.0,20.0,12.0,23.0,30.0,17.0,17.0,25.0,14.0,6.0,23.0,26.0,27.0,21.0,9.0,25.0,4.0,13.0,18.0,6.0,20.0,23.0,20.0,25.0,24.0,30.0,14.0,31.0,20.0,21.0,24.0,19.0,null],"newscrash":[3.0,4.0,4.0,7.0,16.0,9.0,3.0,1.0,2.0,4.0,13.0,7.0,8.0,6.0,3.0,4.0,6.0,6.0,1.0,6.0,1.0,5.0,2.0,2.0,4.0,2.0,0.0,4.0,2.0,2.0,0.0,2.0,3.0,2.0,1.0,2.0,0.0,3.0,1.0,8.0,1.0,2.0,4.0,17.0,2.0,0.0,1.0,1.0,1.0,3.0,4.0,6.0,6.0,0.0,4.0,5.0,8.0,9.0,28.0,5.0,8.0,8.0,5.0,0.0,3.0,3.0,10.0,4.0,5.0,3.0,1.0,9.0,1.0,1.0,4.0,5.0,6.0,3.0,9.0,5.0,0.0,1.0,1.0,6.0,9.0,26.0,5.0,0.0,1.0,8.0,2.0,7.0,0.0,5.0,2.0,9.0,9.0,3.0,1.0,3.0,2.0,2.0,6.0,2.0,3.0,2.0,2.0,4.0,3.0,4.0,5.0,3.0,3.0,5.0,3.0,3.0,3.0,5.0,141.0,18.0,6.0,7.0,20.0,4.0,6.0,0.0,8.0,2.0,4.0,null,null,1.0,5.0,6.0,0.0,9.0,7.0,6.0,7.0,3.0,2.0,4.0,7.0,4.0,3.0,9.0,8.0,8.0,10.0,2.0,7.0,3.0,4.0,18.0,5.0,5.0,7.0,14.0,8.0,6.0,6.0,17.0,4.0,3.0,4.0,7.0,6.0,9.0,26.0,5.0,6.0,3.0,4.0,5.0,4.0,12.0,7.0,3.0,4.0,4.0,15.0,3.0,9.0,9.0,7.0,5.0,3.0,3.0,4.0]},"leadlag":{"RedSeaShip -> Brent":{"lags":[-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10],"corr":[-0.004,0.029,0.037,-0.041,-0.004,-0.001,0.024,-0.014,-0.035,-0.052,0.041,0.002,-0.035,0.022,-0.02,0.003,0.009,0.0,0.043,0.033,-0.005],"best_lag":-1,"best_corr":-0.052},"RedSeaShip -> China(HangSeng)":{"lags":[-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10],"corr":[-0.045,-0.014,-0.015,-0.026,-0.001,-0.03,-0.057,-0.042,-0.008,0.002,0.044,0.027,-0.01,0.045,0.051,0.01,-0.024,-0.044,0.007,0.01,-0.031],"best_lag":-4,"best_corr":-0.057},"RedSeaShip -> Wheat":{"lags":[-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10],"corr":[-0.028,-0.014,0.001,-0.012,-0.06,-0.01,-0.065,0.042,-0.009,-0.035,-0.089,-0.002,-0.01,0.074,-0.04,-0.009,-0.01,0.066,0.023,-0.035,-0.049],"best_lag":0,"best_corr":-0.089},"GlobalShip -> NatGas":{"lags":[-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10],"corr":[0.009,-0.012,0.013,0.029,-0.04,-0.055,-0.017,0.001,0.061,-0.008,-0.029,-0.012,0.014,0.006,0.021,0.017,0.07,0.029,0.012,0.02,-0.01],"best_lag":6,"best_corr":0.07},"CrashNews -> SPX":{"lags":[-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10],"corr":[-0.075,-0.003,-0.055,-0.096,-0.09,-0.185,-0.248,-0.228,-0.044,0.004,0.068,0.107,0.146,0.086,0.053,0.046,0.011,0.001,0.028,-0.003,0.009],"best_lag":-4,"best_corr":-0.248},"CrashNews -> VIX":{"lags":[-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10],"corr":[0.076,-0.006,0.066,0.137,0.114,0.217,0.309,0.303,0.083,0.009,-0.103,-0.111,-0.159,-0.083,-0.069,-0.087,-0.059,-0.053,-0.077,-0.05,-0.056],"best_lag":-4,"best_corr":0.309},"Conflict -> Oil(Brent)":{"lags":[-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10],"corr":[-0.059,0.073,0.007,-0.004,0.036,0.053,0.02,0.03,0.032,0.081,0.006,0.02,-0.009,0.035,-0.039,-0.005,0.095,0.018,-0.033,-0.029,0.002],"best_lag":6,"best_corr":0.095},"Conflict -> Gold":{"lags":[-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10],"corr":[-0.016,0.036,-0.106,-0.024,-0.0,-0.039,-0.035,0.09,-0.053,-0.019,0.011,-0.006,-0.096,0.023,0.005,-0.073,0.044,-0.013,-0.068,0.066,0.027],"best_lag":-8,"best_corr":-0.106},"Conflict -> VIX":{"lags":[-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10],"corr":[-0.063,-0.081,0.061,0.037,-0.121,0.108,-0.063,-0.05,0.012,0.009,-0.024,0.103,0.03,-0.022,0.089,-0.013,-0.041,0.071,-0.021,-0.033,0.134],"best_lag":10,"best_corr":0.134}},"events":[{"name":"SVB collapse","date":"2023-03-10","moves":{"SPX":-2.37,"HangSeng":-4.84,"VIX":6.55,"WTI":-12.85,"Brent":-11.53,"Gold":6.21,"DXY":-0.92,"UST10Y":-0.46,"BTC":9.7,"TLT":4.31}},{"name":"Israel\u2013Hamas war","date":"2023-10-09","moves":{"SPX":0.45,"HangSeng":1.87,"VIX":1.87,"WTI":5.92,"Brent":7.46,"Gold":5.31,"DXY":0.58,"UST10Y":-0.15,"BTC":-3.88,"TLT":3.33}},{"name":"Red Sea shipping halt","date":"2023-12-18","moves":{"SPX":0.75,"HangSeng":-2.69,"VIX":0.75,"WTI":2.98,"Brent":3.29,"Gold":1.78,"DXY":-0.83,"UST10Y":-0.01,"BTC":4.32,"TLT":-0.68}},{"name":"Yen carry unwind","date":"2024-08-05","moves":{"SPX":-0.04,"HangSeng":0.85,"VIX":-3.02,"WTI":4.52,"Brent":3.71,"Gold":0.26,"DXY":-0.07,"UST10Y":0.14,"BTC":-0.76,"TLT":-2.06}}],"safehaven":{"desc":"avg move on worst-5% SPX days","vals":{"Gold":-0.4,"TLT":-0.03,"DXY":-0.12,"VIX":3.66,"BTC":-2.05,"WTI":-0.41,"USDJPY":-0.03},"n_days":36}};
+const css=k=>getComputedStyle(document.documentElement).getPropertyValue(k).trim();
+const C={ink:()=>css('--ink'),mut:()=>css('--muted'),acc:()=>css('--accent'),acc2:()=>css('--accent2'),
+  pos:()=>css('--pos'),neg:()=>css('--neg'),grid:()=>css('--grid'),line:()=>css('--line'),panel:()=>css('--panel')};
+const SVG='http://www.w3.org/2000/svg';
+function el(n,a){const e=document.createElementNS(SVG,n);for(const k in a)e.setAttribute(k,a[k]);return e;}
+function fmt(x,d=2){return x==null||isNaN(x)?'–':(+x).toFixed(d);}
+function signed(x,d=1){if(x==null||isNaN(x))return '–';const s=(+x>=0?'+':'')+(+x).toFixed(d);return s;}
+
+/* ---- ticker + kpis ---- */
+(function(){
+  const m=D.meta;
+  document.getElementById('ticker').innerHTML=
+    [`panel <b>${m.rows.toLocaleString()}</b> days`,`<b>${m.cols}</b> series`,
+     `${m.start} → <b>${m.end}</b>`,`73 datasets · 2.4&nbsp;GB · Storj S3`]
+    .map(t=>`<span class="chip">${t}</span>`).join('');
+  const sys=D.syscorr.vals, sysNow=sys[sys.length-1], sysMax=Math.max(...sys);
+  const spxDD=Math.min(...D.timeline.dd.filter(v=>v!=null));
+  const cn=D.leadlag['CrashNews -> VIX'];
+  const k=[
+    {n:signed(D.top_corr.find(p=>p.a=='SPX'&&p.b=='VIX').r,2),k:'SPX ↔ VIX',d:'daily-return correlation — the market’s built-in fear gauge, inverted and tight'},
+    {n:fmt(sysNow,2),k:'equity co-movement now',d:`avg pairwise corr of 9 world indices · peaked at ${fmt(sysMax,2)} in stress`},
+    {n:signed(spxDD,1)+'%',k:'deepest S&P drawdown',d:'peak-to-trough over the window, weekly close'},
+    {n:D.safehaven.vals.Gold>0?'Gold':'—',k:'best crisis hedge',d:`+${fmt(D.safehaven.vals.Gold,2)}% avg on the worst-5% S&P days (n=${D.safehaven.n_days})`},
+  ];
+  document.getElementById('kpis').innerHTML=k.map(x=>
+    `<div class="kpi"><div class="n">${x.n}</div><div class="k lbl">${x.k}</div><div class="d">${x.d}</div></div>`).join('');
+})();
+
+/* ---- generic line chart on svg ---- */
+function axes(svg,W,H,pad,xr,yr,yticks,fmtY,xlabels){
+  // grid + y ticks
+  yticks.forEach(t=>{
+    const y=pad.t+(1-(t-yr[0])/(yr[1]-yr[0]))*(H-pad.t-pad.b);
+    svg.appendChild(el('line',{x1:pad.l,y1:y,x2:W-pad.r,y2:y,stroke:C.grid(),'stroke-width':1}));
+    const tx=el('text',{x:pad.l-8,y:y+4,'text-anchor':'end','font-size':11});tx.textContent=fmtY(t);svg.appendChild(tx);
+  });
+  (xlabels||[]).forEach(o=>{
+    const x=pad.l+((o.i-xr[0])/(xr[1]-xr[0]))*(W-pad.l-pad.r);
+    const tx=el('text',{x,y:H-pad.b+18,'text-anchor':'middle','font-size':11});tx.textContent=o.t;svg.appendChild(tx);
+  });
+}
+function path(svg,pts,xr,yr,W,H,pad,color,wd){
+  let d='';let started=false;
+  pts.forEach(p=>{
+    if(p.v==null||isNaN(p.v)){started=false;return;}
+    const x=pad.l+((p.i-xr[0])/(xr[1]-xr[0]))*(W-pad.l-pad.r);
+    const y=pad.t+(1-(p.v-yr[0])/(yr[1]-yr[0]))*(H-pad.t-pad.b);
+    d+=(started?'L':'M')+x.toFixed(1)+' '+y.toFixed(1)+' ';started=true;
+  });
+  svg.appendChild(el('path',{d,fill:'none',stroke:color,'stroke-width':wd||2,'stroke-linejoin':'round','stroke-linecap':'round'}));
+}
+function monthTicks(dates){
+  const out=[];let last='';
+  dates.forEach((d,i)=>{const ym=d.slice(0,7);const yr=d.slice(0,4);
+    if(d.slice(5,7)=='01'&&yr!=last){out.push({i,t:yr});last=yr;}});
+  return out;
+}
+
+/* ---- 01 timeline ---- */
+(function(){
+  const svg=document.getElementById('timeline'),W=1120,H=420,pad={l:46,r:52,t:18,b:34};
+  const T=D.timeline,N=T.dates.length,xr=[0,N-1];
+  const spx=T.spx,vix=T.vix;
+  const syr=[Math.min(...spx.filter(v=>v!=null))*0.98,Math.max(...spx.filter(v=>v!=null))*1.02];
+  const vyr=[10,Math.max(...vix.filter(v=>v!=null))*1.1];
+  axes(svg,W,H,pad,xr,syr,[80,100,120,140,160,180].filter(t=>t>=syr[0]&&t<=syr[1]),v=>v,monthTicks(T.dates));
+  // vix right axis ticks
+  [15,25,35,45].forEach(t=>{if(t<=vyr[1]){const y=pad.t+(1-(t-vyr[0])/(vyr[1]-vyr[0]))*(H-pad.t-pad.b);
+    const tx=el('text',{x:W-pad.r+8,y:y+4,'font-size':11,fill:C.acc()});tx.textContent=t;svg.appendChild(tx);}});
+  // event markers
+  const EV=D.events.map(e=>({d:e.date,n:e.name}));
+  EV.forEach(e=>{let i=T.dates.findIndex(x=>x>=e.d);if(i<0)i=N-1;
+    const x=pad.l+(i/(N-1))*(W-pad.l-pad.r);
+    svg.appendChild(el('line',{x1:x,y1:pad.t,x2:x,y2:H-pad.b,stroke:C.neg(),'stroke-width':1,'stroke-dasharray':'3 3',opacity:.7}));
+    const tx=el('text',{x:x+4,y:pad.t+12,'font-size':10.5,fill:C.neg()});tx.textContent=e.n;svg.appendChild(tx);});
+  path(svg,vix.map((v,i)=>({i,v})),xr,vyr,W,H,pad,C.acc(),1.6);
+  path(svg,spx.map((v,i)=>({i,v})),xr,syr,W,H,pad,C.acc2(),2.4);
+})();
+
+/* ---- 02 butterfly ---- */
+(function(){
+  const svg=document.getElementById('butterfly'),W=1120,H=380,pad={l:46,r:20,t:18,b:34};
+  const T=D.timeline,N=T.dates.length,xr=[0,N-1];
+  const rs=T.redsea,cp=T.cape;
+  const all=rs.concat(cp).filter(v=>v!=null);
+  const yr=[0,Math.max(...all)*1.1];
+  const yt=[];for(let t=0;t<=yr[1];t+=20)yt.push(t);
+  axes(svg,W,H,pad,xr,yr,yt,v=>v,monthTicks(T.dates));
+  path(svg,cp.map((v,i)=>({i,v})),xr,yr,W,H,pad,C.pos(),2.2);
+  path(svg,rs.map((v,i)=>({i,v})),xr,yr,W,H,pad,C.neg(),2.2);
+  // mark Red Sea escalation
+  const e='2023-12-18';let i=T.dates.findIndex(x=>x>=e);
+  const x=pad.l+(i/(N-1))*(W-pad.l-pad.r);
+  svg.appendChild(el('line',{x1:x,y1:pad.t,x2:x,y2:H-pad.b,stroke:C.mut(),'stroke-width':1,'stroke-dasharray':'3 3'}));
+  const tx=el('text',{x:x+5,y:pad.t+12,'font-size':10.5,fill:C.mut()});tx.textContent='carriers divert (Dec 2023)';svg.appendChild(tx);
+  // finding text
+  const rsPre=rs.slice(40,52).filter(v=>v!=null),rsNow=rs.slice(-8).filter(v=>v!=null);
+  const a=rsPre.reduce((s,v)=>s+v,0)/rsPre.length,b=rsNow.reduce((s,v)=>s+v,0)/rsNow.length;
+  document.getElementById('butterfly-finding').innerHTML=
+    `<b>Red Sea transits fell ~${Math.round((1-b/a)*100)}%</b> from a pre-crisis baseline of ~${fmt(a,0)} to ~${fmt(b,0)} container ships/period, while Cape-of-Good-Hope traffic absorbed the diversion. A one-week attack headline becomes a months-long re-routing of the planet's cargo — and a persistent premium on anything that has to move by sea.`;
+})();
+
+/* ---- 03 heatmap ---- */
+(function(){
+  const svg=document.getElementById('heatmap'),W=1120,H=640;
+  const L=D.corr.labels,M=D.corr.matrix,n=L.length;
+  const padL=92,padT=92,cell=(W-padL-14)/n,gridH=cell*n;
+  function col(r){if(r==null||isNaN(r))return C.panel();
+    const t=Math.max(-1,Math.min(1,r));
+    // diverging: neg->red, 0->neutral, pos->teal
+    const neg=[196,52,28],mid=[130,140,155],pos=[14,116,144];
+    let a,b,f;if(t<0){a=mid;b=neg;f=-t;}else{a=mid;b=pos;f=t;}
+    const c=a.map((v,k)=>Math.round(v+(b[k]-v)*Math.sqrt(f)));
+    return `rgb(${c[0]},${c[1]},${c[2]})`;}
+  for(let i=0;i<n;i++){for(let j=0;j<n;j++){
+    svg.appendChild(el('rect',{x:padL+j*cell,y:padT+i*cell,width:cell-1,height:cell-1,rx:2,fill:col(M[i][j])}));
+  }}
+  L.forEach((l,i)=>{
+    const ty=el('text',{x:padL-6,y:padT+i*cell+cell/2+3,'text-anchor':'end','font-size':10.5,fill:C.ink()});ty.textContent=l;svg.appendChild(ty);
+    const tx=el('text',{x:padL+i*cell+cell/2,y:padT-6,'font-size':10.5,fill:C.ink(),transform:`rotate(-52 ${padL+i*cell+cell/2} ${padT-6})`,'text-anchor':'start'});tx.textContent=l;svg.appendChild(tx);
+  });
+  // scale legend
+  const lx=padL,ly=padT+gridH+26;
+  for(let s=0;s<=40;s++){svg.appendChild(el('rect',{x:lx+s*5,y:ly,width:5,height:11,fill:col(-1+s/20)}));}
+  [['−1',0],['0',100],['+1',200]].forEach(([t,dx])=>{const e=el('text',{x:lx+dx,y:ly+26,'font-size':11});e.textContent=t;svg.appendChild(e);});
+  const cap=el('text',{x:lx+215,y:ly+10,'font-size':11});cap.textContent='← move opposite      move together →';svg.appendChild(cap);
+})();
+
+/* ---- 04 regime ---- */
+(function(){
+  const svg=document.getElementById('regime'),W=1120,H=300,pad={l:44,r:16,t:16,b:32};
+  const s=D.syscorr,N=s.dates.length,xr=[0,N-1];
+  const yr=[Math.min(...s.vals)*0.9,Math.max(...s.vals)*1.05];
+  axes(svg,W,H,pad,xr,yr,[0.2,0.3,0.4,0.5,0.6].filter(t=>t>=yr[0]&&t<=yr[1]),v=>v.toFixed(1),monthTicks(s.dates));
+  // area fill
+  const pts=s.vals.map((v,i)=>({i,v}));
+  let d='';pts.forEach((p,k)=>{const x=pad.l+(p.i/(N-1))*(W-pad.l-pad.r);const y=pad.t+(1-(p.v-yr[0])/(yr[1]-yr[0]))*(H-pad.t-pad.b);d+=(k?'L':'M')+x.toFixed(1)+' '+y.toFixed(1)+' ';});
+  const x0=pad.l,x1=W-pad.r,yb=H-pad.b;
+  svg.appendChild(el('path',{d:`${d}L${x1} ${yb} L${x0} ${yb} Z`,fill:C.acc(),opacity:.12}));
+  path(svg,pts,xr,yr,W,H,pad,C.acc(),2.2);
+})();
+
+/* ---- 05 lead-lag small multiples ---- */
+(function(){
+  const box=document.getElementById('leadlag');
+  Object.entries(D.leadlag).forEach(([name,o])=>{
+    const div=document.createElement('div');div.className='ll-card';
+    const nn=name.split(' -> ');
+    const w=300,h=110,pad={l:6,r:6,t:8,b:16},mid=(pad.l+ (w-pad.r))/2;
+    const mx=Math.max(0.06,...o.corr.filter(v=>v!=null).map(v=>Math.abs(v)));
+    const bw=(w-pad.l-pad.r)/o.lags.length;
+    let bars='';
+    o.corr.forEach((v,i)=>{if(v==null)return;const x=pad.l+i*bw;
+      const bh=Math.abs(v)/mx*((h-pad.t-pad.b)/2);
+      const y0=(pad.t+(h-pad.b))/2;
+      const y=v>=0?y0-bh:y0;
+      const isBest=o.lags[i]===o.best_lag;
+      bars+=`<rect x="${x+0.5}" y="${y}" width="${bw-1}" height="${Math.max(0.6,bh)}" rx="1" fill="${isBest?'var(--accent)':(v>=0?'var(--accent2)':'var(--neg)')}" opacity="${isBest?1:.55}"/>`;});
+    const y0=(pad.t+(h-pad.b))/2;
+    const zx=pad.l+((10-0)/1)*0; // zero-lag position = index 10
+    const zeroX=pad.l+10*bw+bw/2;
+    div.innerHTML=`<div class="t">${nn[0]} <span style="color:var(--muted)">→</span> ${nn[1]}</div>`+
+      `<div class="m">best offset <b style="color:var(--accent)">${signed(o.best_lag,0)}d</b> · r=${signed(o.best_corr,2)}</div>`+
+      `<svg viewBox="0 0 ${w} ${h}"><line x1="${pad.l}" y1="${y0}" x2="${w-pad.r}" y2="${y0}" stroke="var(--line)"/>`+
+      `<line x1="${zeroX}" y1="${pad.t}" x2="${zeroX}" y2="${h-pad.b}" stroke="var(--grid)" stroke-dasharray="2 2"/>`+
+      bars+
+      `<text x="${pad.l}" y="${h-4}" font-size="9">−10d</text>`+
+      `<text x="${zeroX}" y="${h-4}" font-size="9" text-anchor="middle">0</text>`+
+      `<text x="${w-pad.r}" y="${h-4}" font-size="9" text-anchor="end">+10d</text></svg>`;
+    box.appendChild(div);
+  });
+})();
+
+/* ---- 06 events table ---- */
+(function(){
+  const cols=['SPX','HangSeng','VIX','WTI','Brent','Gold','DXY','UST10Y','BTC','TLT'];
+  const pct=new Set(['SPX','HangSeng','WTI','Brent','Gold','DXY','BTC','TLT']);
+  const t=document.getElementById('events');
+  let h='<thead><tr><th>Shock</th><th>Date</th>'+cols.map(c=>`<th>${c}</th>`).join('')+'</tr></thead><tbody>';
+  D.events.forEach(e=>{
+    h+=`<tr><td>${e.name}</td><td style="color:var(--muted)">${e.date}</td>`+
+      cols.map(c=>{const v=e.moves[c];if(v==null)return '<td>–</td>';
+        const cls=v>0?'pos':(v<0?'neg':'');const suf=pct.has(c)?'%':'';
+        return `<td class="${cls}">${signed(v,pct.has(c)?1:2)}${suf}</td>`;}).join('')+'</tr>';
+  });
+  t.innerHTML=h+'</tbody>';
+})();
+
+/* ---- 07 safehaven + topcorr ---- */
+(function(){
+  document.getElementById('safe-desc').textContent='Avg move on the worst-5% S&P days · n='+D.safehaven.n_days;
+  const s=D.safehaven.vals;
+  const order=['Gold','TLT','DXY','USDJPY','BTC','WTI','VIX'];
+  let h='<thead><tr><th>Asset</th><th>avg move</th><th></th></tr></thead><tbody>';
+  order.forEach(a=>{if(!(a in s))return;const v=s[a];const isVix=a=='VIX';
+    const cls=isVix?(v>0?'neg':'pos'):(v>0?'pos':'neg');
+    const suf=isVix?' pts':'%';
+    const good=isVix? v>0 : v>0;
+    h+=`<tr><td>${a}</td><td class="${cls}">${signed(v,2)}${suf}</td><td style="color:var(--muted)">${a=='Gold'||a=='TLT'||a=='USDJPY'||(a=='VIX')?'hedge':'risk-on'}</td></tr>`;});
+  document.getElementById('safe').innerHTML=h+'</tbody>';
+
+  let c='<thead><tr><th>Pair</th><th>r</th></tr></thead><tbody>';
+  D.top_corr.slice(0,10).forEach(p=>{const cls=p.r>0?'pos':'neg';
+    c+=`<tr><td>${p.a} ~ ${p.b}</td><td class="${cls}">${signed(p.r,2)}</td></tr>`;});
+  document.getElementById('topcorr').innerHTML=c+'</tbody>';
+})();
+
+document.getElementById('foot').innerHTML=
+  `Built from a live pull of the <b>market-data</b> Storj bucket · 1,683 parquet files · unified daily panel ${D.meta.start}→${D.meta.end} · `+
+  `correlations on daily returns, rates &amp; VIX on daily change · event studies [−3d,+5d] · lead-lag = cross-correlation at day offsets. Signals are exploratory, not trading advice.`;
+</script>
