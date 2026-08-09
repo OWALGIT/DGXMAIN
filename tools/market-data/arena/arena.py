@@ -85,10 +85,10 @@ def step_all():
         if t['mode'] == 'manual':                    # manual tenants act via the UI, not the auto-step
             _log(t, st, prices, ctx, 'manual', '(waiting for manual orders)', '', []); continue
         import auth
-        base = t['base_url'] or GATEWAY
+        base = GATEWAY if t['is_house'] else (t['base_url'] or '')      # customers use ONLY their own endpoint — never the house
         key = GKEY if t['is_house'] else auth.dec(t['api_key'] or '')   # decrypt tenant key at use time
-        if not key:
-            _log(t, st, prices, ctx, 'AI:no-key', '(held — no API key)', '', []); continue
+        if not base or not key:
+            _log(t, st, prices, ctx, 'AI:no-key', '(held — needs your own base_url + key)', '', []); continue
         dec = ai_decide(base, key, t['model'], snap, ctx, book, _mem(t['id']))
         if 'targets' not in dec:                      # tenant AI failed → hold (no churn)
             _log(t, st, prices, ctx, 'AI:'+(dec.get('error', 'fail')[:20]), '(held — AI unavailable)', '', []); continue

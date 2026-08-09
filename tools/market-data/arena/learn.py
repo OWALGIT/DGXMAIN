@@ -7,6 +7,10 @@ and current market context. Teaching, not just a trading screen.
 """
 import os, sys, glob, json, urllib.request
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
+_AG = os.environ.get('BITFIN_AGENT_DIR') or next(
+    (d for d in [os.path.join(os.path.dirname(HERE), 'agent'), '/opt/quant/agent_trader']
+     if os.path.exists(os.path.join(d, 'stockmind_trader.py'))), HERE)
+sys.path.insert(0, _AG)
 from stockmind_trader import GATEWAY, GKEY, DATA_DIR  # noqa
 import pandas as pd
 
