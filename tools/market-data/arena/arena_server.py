@@ -54,11 +54,17 @@ class H(BaseHTTPRequestHandler):
             if u.path in ('/', '/index.html'): self._s(200, PAGE, 'text/html; charset=utf-8')
             elif u.path == '/api/leaderboard': self._s(200, arena.leaderboard())
             elif u.path == '/api/book': self._s(200, book(int(q.get('id', ['0'])[0])))
-            elif u.path == '/learn': self._s(200, PAGE_LEARN, 'text/html; charset=utf-8')
-            elif u.path == '/api/catalog': self._s(200, learn.catalog())
+            elif u.path == '/learn':
+                if not self._user(): self.send_response(302); self.send_header('Location', '/'); self.end_headers()
+                else: self._s(200, PAGE_LEARN, 'text/html; charset=utf-8')
+            elif u.path == '/api/catalog':
+                if not self._user(): self._s(401, {'error': 'log in first'})
+                else: self._s(200, learn.catalog())
             elif u.path == '/api/series':
-                ds = q.get('dataset', [''])[0]; sym = q.get('symbol', [''])[0]
-                self._s(200, (learn._series(ds, sym) or {'error': 'no data'}) if sym else {'symbols': learn.symbols(ds)})
+                if not self._user(): self._s(401, {'error': 'log in first'})
+                else:
+                    ds = q.get('dataset', [''])[0]; sym = q.get('symbol', [''])[0]
+                    self._s(200, (learn._series(ds, sym) or {'error': 'no data'}) if sym else {'symbols': learn.symbols(ds)})
             elif u.path == '/api/me':
                 usr = self._user()
                 self._s(200, {'user': ({'email': usr['email'], 'role': usr['role'], 'tenant_id': my_tenant(usr['id'])} if usr else None)})
@@ -107,6 +113,7 @@ class H(BaseHTTPRequestHandler):
                 if not usr or usr['role'] != 'admin': return self._s(403, {'error': 'admin only'})
                 auth.set_disabled(int(b['id']), bool(b.get('disabled'))); self._s(200, {'ok': True})
             elif self.path == '/api/explain':
+                if not self._user(): return self._s(401, {'error': 'log in first'})
                 if not auth.rate_ok('explain:'+ip, 20, 300): return self._s(429, {'error': 'slow down — too many questions'})
                 self._s(200, learn.explain((b.get('question') or '')[:400]))
             elif self.path == '/api/step':
