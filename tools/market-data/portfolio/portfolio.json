@@ -1,0 +1,25 @@
+{
+ "name": "STOCKMIND Tactical — Aug 2026",
+ "account_usd": 10000,
+ "entry_date": "2026-08-08",
+ "review_date": "2026-09-08",
+ "horizon": "1 month",
+ "regime": "Late-cycle, narrow tech-led uptrend; weak breadth (22% >MA150); HYG below MA150; hawkish Fed; 10Y 4.67%, oil $84; Fear sentiment (F&G 39); weak USD, gold/copper firm; strong earnings (86% beat).",
+ "philosophy": "Stay invested in the uptrend but don't chase mega-tech. Overweight the historically best diversifier (gold), tilt equity to quality/defensive that is actually leading (healthcare), hold real T-bill carry as dry powder into the PCE/GDP gate, avoid long duration and junk credit.",
+ "benchmark": "VOO (all-equity) and a 60/40 (60% VOO / 40% AGG)",
+ "positions": [
+  {"etf":"VOO","name":"S&P 500 core","sleeve":["world_indices","sp500_us"],"weight":0.28,"usd":2800,"entry":7757.64,"unit":"SPX idx","thesis":"Broad uptrend above 200MA (+10%), diversified beyond mega-tech. The participate sleeve."},
+  {"etf":"QQQM","name":"Nasdaq-100 growth","sleeve":["world_indices","nasdaq_us"],"weight":0.12,"usd":1200,"entry":26690.62,"unit":"NDX idx","thesis":"Momentum leader (XLK +5.3% today) but sized modestly — concentration & narrow-breadth risk."},
+  {"etf":"XLV","name":"Healthcare (quality defensive)","sleeve":["sectors","healthcare"],"weight":0.12,"usd":1200,"entry":165.68,"unit":"$","thesis":"Best equity Sharpe since 2000 (0.47), leading +15% 12m, above 200MA, sold off today (-1.8%) = better entry."},
+  {"etf":"GLD","name":"Gold","sleeve":["commodities","gold"],"weight":0.20,"usd":2000,"entry":4340.70,"unit":"spot $","thesis":"Highest risk-adjusted return 2000-2026 (Sharpe 0.73), ~0 equity corr, -0.39 to USD. The regime hedge: weak dollar + debasement + geopolitics. Implement via GLD or IAU."},
+  {"etf":"SHY","name":"Short T-bills (dry powder)","sleeve":["bonds_credit","shy_1_3y_treasury"],"weight":0.23,"usd":2300,"entry":81.92,"unit":"$","thesis":"~3.7% risk-free carry, cuts portfolio vol, dry powder into the PCE/GDP macro gate. Implement via SHY or BIL."},
+  {"etf":"XLP","name":"Staples ballast","sleeve":["sectors","cons_staples"],"weight":0.05,"usd":500,"entry":85.12,"unit":"$","thesis":"Lowest drawdown of the menu (-38% over 26y), defensive ballast if the narrow rally fails."}
+ ],
+ "exposure": {"equity":0.57,"gold":0.20,"cash_duration":0.23},
+ "rebalance_triggers": {
+  "add_risk":  "Breadth (% >MA150) climbs above ~40 AND HYG reclaims its MA150 → rally broadening; rotate cash into VOO/QQQM.",
+  "cut_risk":  "HYG breaks lower / VIX > 25 / SPX loses MA150 / hot Core-PCE pushes 10Y > 4.9% → trim QQQM & VOO into SHY and gold.",
+  "gold_stop": "Gold closes decisively below its 200-day MA → trim the gold sleeve (structural break in the hedge)."
+ },
+ "watchlist_not_yet": ["BTC (below 200MA, -19% 3m — wait for momentum to turn)","Copper/COPX (strong but no clean ETF entry here)","TLT (avoid until Fed pivots)"]
+}
