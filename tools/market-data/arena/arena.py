@@ -37,12 +37,14 @@ def init():
       ret_pct REAL, cycle_pnl REAL, n_pos INTEGER, brain TEXT, fills INTEGER,
       thesis TEXT, reflection TEXT);
     """); c.commit(); c.close()
+    import auth; auth.init_auth()
 
-def register(name, capital, mode='ai', base_url=None, api_key=None, model='auto', is_house=0):
+def register(name, capital, mode='ai', base_url=None, api_key=None, model='auto', is_house=0, user_id=None):
+    import auth
     st = {'cash': float(capital), 'positions': {}, 'equity0': float(capital), 'cycles': 0}
     c = db(); cur = c.execute(
-        "INSERT INTO tenants(name,capital,mode,base_url,api_key,model,is_house,state,created) VALUES(?,?,?,?,?,?,?,?,?)",
-        (name, float(capital), mode, base_url, api_key, model, is_house, json.dumps(st), now()))
+        "INSERT INTO tenants(name,capital,mode,base_url,api_key,model,is_house,state,created,user_id) VALUES(?,?,?,?,?,?,?,?,?,?)",
+        (name, float(capital), mode, base_url, auth.enc(api_key or ''), model, int(is_house), json.dumps(st), now(), user_id))
     c.commit(); tid = cur.lastrowid; c.close(); return tid
 
 SYS = ("You are a systematic PM on a LONG/SHORT paper book that LEARNS from its own P&L. "
@@ -82,7 +84,11 @@ def step_all():
         st = json.loads(t['state']); book = {k: round(p['qty']*prices.get(k, p['avg'])/max(equity(st, prices), 1), 3) for k, p in st['positions'].items()}
         if t['mode'] == 'manual':                    # manual tenants act via the UI, not the auto-step
             _log(t, st, prices, ctx, 'manual', '(waiting for manual orders)', '', []); continue
-        base = t['base_url'] or GATEWAY; key = t['api_key'] or GKEY
+        import auth
+        base = t['base_url'] or GATEWAY
+        key = GKEY if t['is_house'] else auth.dec(t['api_key'] or '')   # decrypt tenant key at use time
+        if not key:
+            _log(t, st, prices, ctx, 'AI:no-key', '(held — no API key)', '', []); continue
         dec = ai_decide(base, key, t['model'], snap, ctx, book, _mem(t['id']))
         if 'targets' not in dec:                      # tenant AI failed → hold (no churn)
             _log(t, st, prices, ctx, 'AI:'+(dec.get('error', 'fail')[:20]), '(held — AI unavailable)', '', []); continue
