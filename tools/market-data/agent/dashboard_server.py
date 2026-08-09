@@ -6,11 +6,15 @@ allocation by asset class, live-marked positions, regime gauges, and the AI
 brain's decision feed. Reads state.json + journal.jsonl; no writes, no secrets.
     DASH_BIND=100.78.185.72 DASH_PORT=8787 python3 dashboard_server.py
 """
-import os, json, glob, time, datetime as dt
+import os, sys, json, glob, time, datetime as dt
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import pandas as pd
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
+try:
+    import live                       # live-price overlay (crypto/FX/gold trade weekends & intraday)
+except Exception:
+    live = None
 CFG = json.load(open(os.path.join(HERE, 'config.json')))
 UNIVERSE = CFG['universe']; DATA_DIR = CFG.get('data_dir', '/opt/bucket_restore')
 CAPITAL = CFG.get('capital', 10000)
@@ -19,7 +23,7 @@ BIND = os.environ.get('DASH_BIND', '100.78.185.72'); PORT = int(os.environ.get('
 CLASS = {**{t: 'Equity' for t in ['SPY','QQQ','IWM','XLK','XLV','XLF','XLE','XLI','XLP','XLU','XLY','XLB','XLRE']},
          'GLD': 'Gold', 'SLV': 'Commodity', 'USO': 'Commodity', 'CPER': 'Commodity',
          'TLT': 'Bonds', 'IEF': 'Bonds', 'HYG': 'Bonds', 'SHY': 'Bonds', 'BTC': 'Crypto'}
-_cache = {'t': 0, 'p': {}}
+_cache = {'t': 0, 'p': {}, 'live_ts': None, 'live_tkrs': []}
 
 def _closes(ds, sym):
     fs = glob.glob(f'{DATA_DIR}/{ds}/**/symbol={sym}/*.parquet', recursive=True)
@@ -32,11 +36,22 @@ def _closes(ds, sym):
 
 def latest_prices():
     if time.time() - _cache['t'] < 45 and _cache['p']: return _cache['p']
-    p = {}
+    p = {}; live_ts = None; live_tkrs = []
     for tkr, (ds, sym) in UNIVERSE.items():
         s = _closes(ds, sym)
-        if s is not None and len(s): p[tkr] = float(s.iloc[-1])
-    _cache.update(t=time.time(), p=p); return p
+        if s is None or not len(s): continue
+        dl_date, dl_close = s.index[-1], float(s.iloc[-1]); p[tkr] = dl_close
+        if live is not None:                          # overlay a real-time mark where one exists
+            try:
+                ov = live.live_price(tkr, dl_date, dl_close)
+            except Exception:
+                ov = None
+            if ov:
+                p[tkr] = ov['px']                          # px==dl_close when not fresher, so harmless
+                if pd.Timestamp(ov['ts']) > dl_date:       # only badge as live when genuinely newer than the close
+                    live_tkrs.append(tkr)
+                    if live_ts is None or ov['ts'] > live_ts: live_ts = ov['ts']
+    _cache.update(t=time.time(), p=p, live_ts=live_ts, live_tkrs=sorted(live_tkrs)); return p
 
 def tail(path, n=500):
     if not os.path.exists(path): return []
@@ -51,6 +66,7 @@ def tail(path, n=500):
 def build_state():
     if not os.path.exists(STATE): return {'ready': False, 'msg': 'no state yet — first cycle pending'}
     st = json.load(open(STATE)); prices = latest_prices(); eq0 = st.get('equity0', CAPITAL)
+    live_ts = _cache.get('live_ts'); live_tkrs = _cache.get('live_tkrs', [])
     eq = st['cash']
     for t, pd_ in st['positions'].items(): eq += pd_['qty'] * prices.get(t, pd_['avg'])
     pos, cls = [], {}
@@ -90,6 +106,7 @@ def build_state():
                      'VIX': last.get('VIX'), 'HYG_vs150': last.get('HYG_vs150')},
             'feed': [{'ts': r.get('ts'), 'brain': r.get('brain'), 'eq': r.get('equity'), 'ret': r.get('ret_total_pct'),
                       'fills': r.get('fills', []), 'thesis': r.get('thesis')} for r in j[-20:]][::-1],
+            'live': {'ts': live_ts, 'tickers': live_tkrs, 'n': len(live_tkrs)},
             'now': dt.datetime.utcnow().isoformat(timespec='seconds')+'Z'}
 
 PAGE = open(os.path.join(HERE, 'dashboard.html')).read() if os.path.exists(os.path.join(HERE, 'dashboard.html')) else '<h1>missing</h1>'
