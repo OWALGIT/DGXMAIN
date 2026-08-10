@@ -1,20 +1,28 @@
 #!/usr/bin/env bash
-# diagnose-dioneto — read-only health triage for the `vps-dioneto` host.
+# diagnose-dioneto — read-only health triage for the Dioneto product host.
+#
+# WHERE DIONETO ACTUALLY RUNS
+#   The whole dioneto.* suite (~12 routes: main, -auth, -cloud, -docs, -chat,
+#   -wa, -agents, -help, ...) is published through a single Cloudflare *Tunnel*
+#   named "dioneto" whose one replica runs on host `storai` (origin 51.195.88.44).
+#   The path is:  Cloudflare edge -> cloudflared (storai) -> Caddy -> Authelia
+#   (SSO forward-auth) -> the app. NOTE: `vps-dioneto` in the inventory is a
+#   *different* VPS and is NOT where the product runs — the origin is `storai`.
 #
 # WHY THIS EXISTS
-#   The product at https://dioneto.yohay.ai/ sits behind Cloudflare -> Caddy ->
-#   Authelia (SSO) -> the app. From outside you can only confirm the edge is up
-#   (the root 302-redirects to dioneto-auth.yohay.ai). Every real cause of
-#   "data isn't updating" or "the UI looks distorted" lives *inside* the box:
-#   a full disk, a wedged container, a dead ingestion timer, clock skew, an
-#   OOM-killed backend, or stale static assets cached at the CDN.
+#   From outside you can only confirm the edge is up: every route 302-redirects
+#   to dioneto-auth (that proves Cloudflare+cloudflared+Caddy+Authelia, NOT the
+#   app behind them). Every real cause of "data isn't updating" or "the UI looks
+#   distorted" lives *inside* storai and behind the auth gate: a full disk, a
+#   wedged container, a dead ingestion timer, clock skew, an OOM-killed backend,
+#   a half-applied deploy, or stale static assets cached at the CDN.
 #
 #   This script SSHes into the host (via bin/fleet, so it reuses ssh/config and
 #   the inventory) and runs a battery of READ-ONLY checks that map directly onto
 #   those failure modes. It changes nothing. It only reports.
 #
 # USAGE
-#   ./bin/diagnose-dioneto                 # full report for vps-dioneto
+#   ./bin/diagnose-dioneto                 # full report for storai (default)
 #   ./bin/diagnose-dioneto <host>          # run against another host
 #   FLEET_SSH_USER=root ./bin/diagnose-dioneto
 #
@@ -26,7 +34,7 @@ set -uo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 FLEET="$REPO_DIR/bin/fleet"
-HOST="${1:-vps-dioneto}"
+HOST="${1:-storai}"
 
 [ -x "$FLEET" ] || { echo "diagnose-dioneto: $FLEET not found/executable" >&2; exit 2; }
 
@@ -89,6 +97,28 @@ if command -v docker >/dev/null 2>&1; then
   docker ps -a --format '{{.Label "com.docker.compose.project"}}\t{{.Label "com.docker.compose.project.working_dir"}}' 2>/dev/null | sort -u | sed '/^\s*$/d'
 else
   echo "(docker not installed here)"
+fi
+
+line "CLOUDFLARE TUNNEL: cloudflared  (the single ingress for ALL dioneto.* routes)"
+if command -v cloudflared >/dev/null 2>&1 || systemctl list-unit-files 2>/dev/null | grep -qi cloudflared; then
+  systemctl is-active cloudflared 2>/dev/null && echo "cloudflared service: active" || echo "cloudflared: not a systemd unit (maybe containerised)"
+  echo "--- cloudflared restarts in last 7d (tunnel uptime was ~4d: what restarted it?) ---"
+  journalctl -u cloudflared --since '7 days ago' 2>/dev/null | grep -Ei 'Starting tunnel|Registered tunnel|Initial protocol|context canceled|error|unregister' | tail -10 || true
+  echo "--- ingress map: which hostname -> which LOCAL service:port (a dead local port = that route broken) ---"
+  for f in /etc/cloudflared/config.yml /etc/cloudflared/config.yaml /root/.cloudflared/config.yml; do
+    [ -f "$f" ] && { echo "($f)"; grep -E 'hostname:|service:' "$f" | sed 's/^/  /'; break; }
+  done
+fi
+# containerised cloudflared fallback
+for cn in cloudflared tunnel dioneto-tunnel; do
+  docker logs --since 7d "$cn" 2>&1 | grep -Ei 'Starting tunnel|Registered tunnel|error|unregister' | tail -8 && break
+done 2>/dev/null
+
+line "DEPLOY CORRELATION  (did something change ~4 days ago, when problems began?)"
+echo "System booted: $(uptime -s 2>/dev/null)"
+if command -v docker >/dev/null 2>&1; then
+  echo "--- container CREATED / STARTED times (newest first) — look for a ~4-day-old redeploy ---"
+  docker ps -a --format '{{.CreatedAt}}\t{{.Names}}\t{{.Status}}' 2>/dev/null | sort -r | head -15
 fi
 
 line "REVERSE PROXY: CADDY  (502/503/504 = app backend is down)"

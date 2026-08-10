@@ -8,28 +8,53 @@
 
 ---
 
+## ארכיטקטורה — איפה Dioneto באמת רץ / Where Dioneto actually runs
+
+כל ה-suite (‏~12 routes) מתפרסם דרך **Cloudflare Tunnel אחד** בשם `dioneto`,
+שה-replica היחיד שלו רץ על host **`storai`** (origin ‎`51.195.88.44`, fra*):
+
+```
+Cloudflare edge → cloudflared (storai) → Caddy → Authelia (SSO) → the app
+```
+
+> ⚠️ `vps-dioneto` שבמלאי הוא VPS **אחר** — **לא** שם רץ המוצר. ה-origin הוא
+> **`storai`** (קבוצת `storage`, ‎`100.92.89.14`). כוון לשם.
+
+Routes ידועים: `dioneto` · `-auth` · `-cloud` · `-docs` · `-chat` · `-wa`
+(WhatsApp) · `-agents` · `-help` (+‎4 נוספים = 12).
+
+### מה נצפה מפאנל המנהרה / What the tunnel panel showed
+
+- **Status: Healthy · Active replicas: 1 · Uptime: 4 days.**
+- **replica יחיד** = אין יתירות; נפילה שלו מפילה את *כל* `dioneto.*` בבת אחת.
+- **‏4 ימי uptime** = משהו הפעיל מחדש את המנהרה לפני ~4 ימים. אם זה מתי
+  שהתחילו הבעיות — חשוד לדיפלוי/ריסטארט חלקי. תבדוק מה השתנה אז
+  (סעיף DEPLOY CORRELATION ב-`diagnose-dioneto`).
+
 ## מה כבר נבדק מבחוץ (2026-08-10) / What the edge check already told us
 
-בדיקה חיצונית (בלי התחברות) הראתה שהתשתית **בריאה** — המוצר לא "נפל":
+בדיקה חיצונית (בלי התחברות) על 8 מהשירותים הראתה שכל שכבת הקצה **בריאה**:
 
 | שכבה / Layer            | מצב / State | ראיה / Evidence |
 |-------------------------|-------------|-----------------|
 | Cloudflare (edge)       | ✅ up       | `server: cloudflare`, `cf-ray` |
-| Caddy (reverse proxy)   | ✅ up       | `via: 1.1 Caddy`, מחזיר `302` |
-| Authelia (SSO)          | ✅ up       | `dioneto-auth.yohay.ai` → `HTTP 200`, `/api/health` → `200` |
-| אפליקציית Dioneto        | 🔒 מוגנת    | כל נתיב מחזיר `302` לפורטל ההתחברות |
+| cloudflared tunnel      | ✅ up       | פאנל: Healthy, 4d uptime, 1 replica @ storai |
+| Caddy (reverse proxy)   | ✅ up       | `via: 1.1 Caddy` |
+| Authelia (SSO)          | ✅ up       | `dioneto-auth` → `200`, `/api/health` → `200` |
+| כל 6 האפליקציות          | 🔒 מוגנות   | `dioneto`,`-cloud`,`-docs`,`-chat`,`-wa`,`-agents`,`-help` → `302` ל-auth |
 
-**המשמעות:** הקצה עונה, ההזדהות עובדת. כל תקלה של "נתונים לא מתעדכנים" או
-"עיוותים" יושבת **מאחורי ההתחברות, בתוך המכונה `vps-dioneto`** — ואי אפשר לראות
-אותה מבחוץ בלי SSH לשרת או פרטי התחברות לאפליקציה.
+**נקודה קריטית:** ה-`302` נוצר ע"י Authelia forward-auth **לפני** שהבקשה מגיעה
+לאפליקציה. הוא מוכיח רק שהמנהרה+Caddy+Authelia חיים — **לא** שהאפליקציה
+בריאה. לכן "נתונים לא מתעדכנים"/"עיוותים" יושבים **מאחורי ההזדהות, בתוך
+`storai`**, ואי אפשר לראותם מבחוץ בלי SSH או פרטי התחברות.
 
-> The infrastructure is healthy from the outside. The real fault is *behind the
-> login*, on `vps-dioneto`, and needs SSH (or app credentials) to see.
+> The edge (tunnel + Caddy + Authelia) is healthy; a `302` does not prove the
+> app itself is. The real fault is *behind the login*, on `storai`.
 
 ### שני חסמי גישה שצריך לפתוח כדי לחקור לעומק / Two access gaps to close
 
-1. **SSH לשרת** — נדרש מפתח `~/.ssh/fleet_ed25519` + Tailscale פעיל. בסביבה
-   הזמנית הנוכחית שניהם חסרים, ולכן `./bin/fleet ping vps-dioneto` מחזיר
+1. **SSH ל-`storai`** — נדרש מפתח `~/.ssh/fleet_ed25519` + Tailscale פעיל.
+   בסביבה הזמנית הנוכחית שניהם חסרים, ולכן `./bin/fleet ping storai` מחזיר
    `UNREACHABLE`. הרץ מהמכונה שלך שבה ה-Tailscale והמפתח קיימים.
 2. **התחברות לאפליקציה** — כדי לראות את ה-UI/הנתונים בפועל צריך להיכנס דרך
    `dioneto-auth.yohay.ai`.
@@ -37,8 +62,8 @@
 כשיש SSH — הרץ:
 
 ```bash
-./bin/fleet ping vps-dioneto        # צריך להחזיר OK
-./bin/diagnose-dioneto              # דוח אבחון מלא, קריאה-בלבד
+./bin/fleet ping storai             # צריך להחזיר OK
+./bin/diagnose-dioneto              # דוח אבחון מלא, קריאה-בלבד (יעד: storai)
 ```
 
 ---
@@ -87,26 +112,26 @@
 
 ```bash
 # 1. גישה
-./bin/fleet ping vps-dioneto
+./bin/fleet ping storai
 
 # 2. אבחון קריאה-בלבד (מסמן את הסעיף הבעייתי)
 ./bin/diagnose-dioneto | tee /tmp/dioneto-diag.txt
 
 # 3. צלילה לפי מה שהאדים בדוח, למשל:
-./bin/fleet ssh vps-dioneto "docker ps -a"
-./bin/fleet ssh vps-dioneto "docker logs --since 2h <container>"
-./bin/fleet ssh vps-dioneto "df -h / && systemctl --failed"
+./bin/fleet ssh storai "docker ps -a"
+./bin/fleet ssh storai "docker logs --since 2h <container>"
+./bin/fleet ssh storai "df -h / && systemctl --failed"
 ```
 
 כל הפקודות למעלה הן **קריאה-בלבד**. לפני כל צעד שמשנה מצב (restart, prune,
-מחיקה) — ודא איזה שירות אתה נוגע בו, והתחל מהצר ביותר (`-H vps-dioneto`).
+מחיקה) — ודא איזה שירות אתה נוגע בו, והתחל מהצר ביותר (`-H storai`).
 
 ---
 
 ## הערות / Notes
 
 - הריפו הזה מכיל **רק** את כלי ניהול הצי (fleet). קוד/קונפיג של Dioneto חי על
-  `vps-dioneto` עצמו — לשם צריך ללכת כדי לתקן.
+  `storai` עצמו — לשם צריך ללכת כדי לתקן.
 - אם צריך שאמשיך את החקירה בעצמי: תן לי סביבה עם Tailscale + המפתח
-  `~/.ssh/fleet_ed25519` (כדי ש-`fleet ping vps-dioneto` יחזיר `OK`), ואריץ את
+  `~/.ssh/fleet_ed25519` (כדי ש-`fleet ping storai` יחזיר `OK`), ואריץ את
   `bin/diagnose-dioneto` ואצלול לשורש.
