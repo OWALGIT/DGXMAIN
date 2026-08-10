@@ -68,6 +68,63 @@ Routes ידועים: `dioneto` · `-auth` · `-cloud` · `-docs` · `-chat` · `
 
 ---
 
+## ממצאי חקירה חיה (2026-08-10) / Live investigation findings
+
+נכנסנו בפועל דרך ה-MCP `fleet-control` (‏`run_command`/`docker_ps`) ואבחנו את
+`vps-dioneto` — ה-VM שבו רץ המוצר (‏Paperless, Nextcloud, n8n, **Hermes** AI,
+פורטל WhatsApp, GLPI, FreeScout/UVdesk, Metabase, LibreChat, Vaultwarden ועוד
+~40 קונטיינרים).
+
+**התשתית בריאה — זו לא נפילה.** דיסק 23% (‏224G פנוי), inodes 4%, ‎10Gi RAM
+פנוי, load ~0.3, up 10 ימים. **כל הקונטיינרים `Up`** (6–9 ימים), אף אחד לא קרס.
+לכן `502/503` בקצה אינו התסמין — הבעיה היא שני **צינורות נתונים שהשתתקו**:
+
+### שורש 1 — גשר WhatsApp→GLPI מת מ-2026-08-03 / WhatsApp→GLPI bridge stalled
+
+- `dioneto-waglpi-wa-glpi-bridge-1`: **פעולה אחרונה `2026-08-03T18:07`** — ~7 ימים
+  ללא אף כרטיס/הודעה חדשים ל-GLPI. השתתק בלי שגיאה בלוג.
+- רצף האירועים: ב-‏03/08 ~18:00 ה-session של WhatsApp **התנתק** (הפורטל התחיל
+  להגיש `/qr.png … wa.me/settings/linked_devices`), הוא **חובר מחדש** (‏`/api/state`
+  כרגע `status:"connected"`), אבל **הגשר לא התאושש** אחרי החיבור מחדש.
+- ה-`/api/state` שנראה "מפסיק" ב-05/08 14:48 הוא רק גלישה אנושית לדשבורד דרך
+  Caddy (‏`172.23.0.3` = `dioneto-sso-caddy-1`), לא כשל.
+- **מנגנון:** הודעות מגיעות לפורטל אך אף רכיב לא מושך אותן פנימה → "נתונים לא
+  מתעדכנים".
+- **תיקון (לא בוצע — לבקשת המשתמש):** `docker restart
+  dioneto-waglpi-wa-glpi-bridge-1`, ואז לוודא בלוג שהוא חוזר לעבד הודעות.
+
+### שורש 2 — מתאם Email/IMAP של Hermes בטיים-אאוט / Hermes IMAP timing out
+
+```
+ERROR hermes_plugins.email_platform.adapter: [Email] IMAP fetch error: The read operation timed out   (2026-08-05)
+ERROR hermes_plugins.email_platform.adapter: [Email] IMAP fetch error: cannot read from timed out object (2026-08-08)
+```
+- שגיאה **חוזרת ונמשכת** — ליבת ה-AI לא מצליחה למשוך מיילים ⇒ כל מה שתלוי במייל
+  (חשבוניות, פניות) לא מתעדכן. הקונפיג ב-mount `‎/opt/dioneto/hermes-data`.
+- **בדיקה מומלצת:** קישוריות מ-hermes לשרת ה-IMAP (host/port/firewall), ותוקף
+  אישורים; ‎`docker restart hermes-gateway` בלבד לא יעזור אם זה רשת/הרשאות.
+
+### "עיוותים" / "Distortions"
+
+בלוגים נראו כשלי **תמלול הודעות קוליות** (`voice message could not be
+transcribed`) וטקסט שבור. כשה-inputs של הסוכן מתים הוא מחזיר פלט חלקי/משובש —
+זה ההסבר הסביר ל"עיוותים". **לא** אותר באג ספציפי של רינדור/encoding; אם
+ה"עיוות" הוא במסך מסוים (Metabase, טקסט עברי ב-Nextcloud) — צריך הפניה נקודתית.
+
+### ⚠️ אבטחה / Security
+
+הלוגים של פורטל ה-WhatsApp מכילים **PII של לקוחות ולפחות סיסמה אחת שהוקלדה
+בצ'אט**. אין לשמור/להעביר אותם; מומלץ לסובב את הסיסמה שנחשפה ולהימנע מטיפול
+בסיסמאות דרך WhatsApp. **שום סוד לא נכנס לריפו הזה.**
+
+### פער ניטור / Monitoring gap
+
+ב-`uptime-kuma` מוגדר **מוניטור אחד בלבד** ("Nextcloud בריאות"). לכן שני
+הצינורות שנפלו לא הרימו שום התראה. מומלץ להוסיף מוניטורים ל-heartbeat של
+`wa-glpi-bridge` ושל מתאם ה-Email של Hermes כדי לתפוס השתתקות שקטה בעתיד.
+
+---
+
 ## מהתסמין לשורש התקלה / Symptom → likely cause → confirm & fix
 
 ### 1) "הנתונים לא מתעדכנים" / Data isn't updating
