@@ -32,12 +32,20 @@ Tailscale (`100.x` addresses).
 | `fleet status [group]` | uptime + disk snapshot |
 | `fleet ip <host>` | Print a host's IP |
 
+## Diagnostics
+
+| Command | What it does |
+|---------|--------------|
+| `bin/diagnose-dioneto [host]` | Read-only failure triage for `vps-dioneto` (disk, clock, containers, ingestion timers, proxy/auth logs). See [`docs/dioneto-triage.md`](docs/dioneto-triage.md). |
+
 ## Layout
 
 ```
-bin/fleet             the CLI
+bin/fleet              the CLI
+bin/diagnose-dioneto   read-only triage for the dioneto product host
 inventory/fleet.hosts  the fleet (name / ip / groups / user) — tracked, no secrets
 ssh/config             host aliases -> Tailscale IPs, user + key
+docs/dioneto-triage.md symptom -> cause -> fix runbook for dioneto.yohay.ai
 CLAUDE.md              guidance for the agent
 .gitignore             blocks keys/secrets from git
 ```

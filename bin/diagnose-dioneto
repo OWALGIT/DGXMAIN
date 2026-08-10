@@ -1,0 +1,154 @@
+#!/usr/bin/env bash
+# diagnose-dioneto — read-only health triage for the `vps-dioneto` host.
+#
+# WHY THIS EXISTS
+#   The product at https://dioneto.yohay.ai/ sits behind Cloudflare -> Caddy ->
+#   Authelia (SSO) -> the app. From outside you can only confirm the edge is up
+#   (the root 302-redirects to dioneto-auth.yohay.ai). Every real cause of
+#   "data isn't updating" or "the UI looks distorted" lives *inside* the box:
+#   a full disk, a wedged container, a dead ingestion timer, clock skew, an
+#   OOM-killed backend, or stale static assets cached at the CDN.
+#
+#   This script SSHes into the host (via bin/fleet, so it reuses ssh/config and
+#   the inventory) and runs a battery of READ-ONLY checks that map directly onto
+#   those failure modes. It changes nothing. It only reports.
+#
+# USAGE
+#   ./bin/diagnose-dioneto                 # full report for vps-dioneto
+#   ./bin/diagnose-dioneto <host>          # run against another host
+#   FLEET_SSH_USER=root ./bin/diagnose-dioneto
+#
+# EXIT CODE
+#   0 if the host was reachable and the report ran; non-zero if unreachable.
+#
+# See docs/dioneto-triage.md for how to read the output and what to do next.
+set -uo pipefail
+
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+FLEET="$REPO_DIR/bin/fleet"
+HOST="${1:-vps-dioneto}"
+
+[ -x "$FLEET" ] || { echo "diagnose-dioneto: $FLEET not found/executable" >&2; exit 2; }
+
+# Fail fast (and helpfully) if the host cannot be reached at all.
+if ! "$FLEET" ping "$HOST" 2>/dev/null | grep -q OK; then
+  cat >&2 <<EOF
+diagnose-dioneto: '$HOST' is UNREACHABLE over SSH.
+
+This means the diagnosis cannot run — not that the product is down. Check, in
+order:
+  1. Tailscale is up on THIS machine and can see the host:
+       tailscale status | grep $HOST      # or the host's 100.x address
+  2. The SSH key exists and matches ssh/config (IdentityFile ~/.ssh/fleet_ed25519):
+       ls -l ~/.ssh/fleet_ed25519
+  3. You can reach it directly:
+       ssh -F ssh/config $HOST true
+Once 'bin/fleet ping $HOST' prints OK, re-run this script.
+EOF
+  exit 1
+fi
+
+# The remote payload: one bash script, all read-only, each block guarded so a
+# single failure never aborts the rest. Kept POSIX-friendly; no packages needed.
+read -r -d '' REMOTE <<'REMOTE_EOF'
+set +e
+line() { printf '\n========== %s ==========\n' "$1"; }
+
+line "HOST / UPTIME / LOAD"
+uptime 2>/dev/null
+echo "kernel: $(uname -r)  hostname: $(hostname)"
+
+line "CLOCK / TIME SYNC   (skew breaks stale-data, auth sessions, TLS, caches)"
+date -u '+now(UTC): %Y-%m-%d %H:%M:%S'
+timedatectl 2>/dev/null | grep -Ei 'System clock|NTP|synchronized|Time zone' || echo "(timedatectl unavailable)"
+chronyc tracking 2>/dev/null | grep -Ei 'Leap|System time|Last offset' || true
+
+line "DISK  (a full / or /var is the #1 cause of 'data stopped updating')"
+df -h / /var /var/lib/docker 2>/dev/null | awk 'NR==1||/\//'
+echo "--- inodes ---"
+df -i / /var 2>/dev/null | awk 'NR==1||/\//'
+echo "--- largest dirs under /var/lib/docker (top 5) ---"
+du -xhd1 /var/lib/docker 2>/dev/null | sort -rh | head -6
+
+line "MEMORY / OOM  (OOM-killed backend => partial data, 502s, 'product failed')"
+free -h 2>/dev/null
+echo "--- recent OOM kills (journal) ---"
+journalctl -k --since '48 hours ago' 2>/dev/null | grep -i 'killed process\|out of memory' | tail -5 || echo "(none / no journal access)"
+
+line "DOCKER CONTAINERS  (Restarting/Exited/unhealthy => the broken piece)"
+if command -v docker >/dev/null 2>&1; then
+  docker ps -a --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}' 2>/dev/null
+  echo "--- restart counts (>0 = crash loop) ---"
+  for c in $(docker ps -aq 2>/dev/null); do
+    n=$(docker inspect -f '{{.Name}}' "$c" 2>/dev/null | sed 's#^/##')
+    r=$(docker inspect -f '{{.RestartCount}}' "$c" 2>/dev/null)
+    h=$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}-{{end}}' "$c" 2>/dev/null)
+    [ "${r:-0}" != "0" ] || [ "$h" = "unhealthy" ] && printf '  %-28s restarts=%s health=%s\n' "$n" "$r" "$h"
+  done
+  echo "--- compose projects on this host ---"
+  docker ps -a --format '{{.Label "com.docker.compose.project"}}\t{{.Label "com.docker.compose.project.working_dir"}}' 2>/dev/null | sort -u | sed '/^\s*$/d'
+else
+  echo "(docker not installed here)"
+fi
+
+line "REVERSE PROXY: CADDY  (502/503/504 = app backend is down)"
+systemctl is-active caddy 2>/dev/null && echo "caddy service: active" || echo "caddy service: not a systemd unit (maybe containerised)"
+journalctl -u caddy --since '2 hours ago' 2>/dev/null | grep -Ei 'error|50[0-9]|dial tcp|upstream|reset' | tail -8 || true
+for cn in caddy proxy reverse-proxy; do
+  docker logs --since 2h "$cn" 2>&1 | grep -Ei 'error|50[0-9]|dial tcp|upstream' | tail -6 && break
+done 2>/dev/null
+
+line "AUTH: AUTHELIA  (login/session failures look like 'product broke')"
+for cn in authelia dioneto-auth auth; do
+  docker logs --since 2h "$cn" 2>&1 | grep -Ei 'error|level=error|fatal|denied|failed' | tail -8 && break
+done 2>/dev/null || echo "(no authelia container logs found by common names)"
+
+line "INGESTION: CRON + SYSTEMD TIMERS  (dead job => data frozen at a timestamp)"
+echo "--- failed systemd units ---"
+systemctl --failed --no-legend 2>/dev/null | head -20 || true
+echo "--- timers (look for LAST run far in the past / NEXT that never comes) ---"
+systemctl list-timers --all --no-pager 2>/dev/null | head -20 || true
+echo "--- root crontab ---"
+crontab -l 2>/dev/null | grep -vE '^\s*#|^\s*$' | head -20 || echo "(no root crontab)"
+echo "--- /etc/cron.d ---"
+ls -1 /etc/cron.d 2>/dev/null || true
+
+line "DATABASES  (stale/locked DB => 'data not updating'; corruption => 'distortions')"
+if command -v docker >/dev/null 2>&1; then
+  for c in $(docker ps --format '{{.Names}}' 2>/dev/null); do
+    img=$(docker inspect -f '{{.Config.Image}}' "$c" 2>/dev/null)
+    case "$img" in
+      *postgres*|*mysql*|*maria*|*mongo*|*redis*|*clickhouse*|*timescale*)
+        printf '  DB container: %-24s (%s)\n' "$c" "$img"
+        docker logs --since 1h "$c" 2>&1 | grep -Ei 'error|fatal|panic|corrupt|no space|read-only|deadlock' | tail -4
+        ;;
+    esac
+  done
+fi
+
+line "APP BACKEND: recent errors across all running containers (last 1h)"
+if command -v docker >/dev/null 2>&1; then
+  for c in $(docker ps --format '{{.Names}}' 2>/dev/null); do
+    errs=$(docker logs --since 1h "$c" 2>&1 | grep -Eic 'error|exception|traceback|fatal|panic')
+    [ "${errs:-0}" -gt 0 ] && printf '  %-28s %s error-ish lines/1h\n' "$c" "$errs"
+  done | sort -k2 -rn | head -12
+fi
+
+line "STATIC ASSETS / 'DISTORTIONS'  (broken CSS/JS => garbled UI)"
+echo "Distorted layout is usually STALE ASSETS, not corrupt data. Check:"
+echo "  - App build/deploy time vs. now (was a deploy half-applied?)"
+echo "  - Cloudflare cache still serving old hashed JS/CSS after a redeploy"
+echo "    -> purge cache in Cloudflare, or verify Cache-Control/ETag on /assets"
+echo "  - Mixed old+new containers of the same app (see restart/compose above)"
+
+line "NETWORK EGRESS  (can the box still reach its data source / upstreams?)"
+getent hosts dioneto.yohay.ai 2>/dev/null | head -1
+timeout 6 curl -sS -o /dev/null -w 'loopback via proxy: HTTP %{http_code} in %{time_total}s\n' https://dioneto.yohay.ai/ 2>&1 || echo "(egress curl failed/timeout)"
+
+line "DONE"
+echo "Read docs/dioneto-triage.md to turn these signals into a fix."
+REMOTE_EOF
+
+echo "== diagnose-dioneto :: $HOST :: $(date -u '+%Y-%m-%dT%H:%M:%SZ') =="
+echo "(read-only; nothing on the host is modified)"
+"$FLEET" ssh "$HOST" "$REMOTE"
