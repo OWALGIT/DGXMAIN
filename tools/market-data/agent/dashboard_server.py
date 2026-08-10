@@ -48,7 +48,7 @@ def latest_prices():
                 ov = None
             if ov:
                 p[tkr] = ov['px']                          # px==dl_close when not fresher, so harmless
-                if pd.Timestamp(ov['ts']) > dl_date:       # only badge as live when genuinely newer than the close
+                if pd.Timestamp(ov['ts']).normalize() > pd.Timestamp(dl_date).normalize():   # badge live only for a newer session day
                     live_tkrs.append(tkr)
                     if live_ts is None or ov['ts'] > live_ts: live_ts = ov['ts']
     _cache.update(t=time.time(), p=p, live_ts=live_ts, live_tkrs=sorted(live_tkrs)); return p
