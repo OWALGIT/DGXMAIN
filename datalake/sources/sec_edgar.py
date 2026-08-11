@@ -73,4 +73,9 @@ class SecEdgar(Collector):
                         })
         if not recs:
             return None
-        return pd.DataFrame(recs)
+        df = pd.DataFrame(recs)
+        # SEC reports some values (share counts, aggregate figures) larger than
+        # int64 can hold; coerce the numeric column to float64 so the Parquet
+        # write can't overflow and drop the whole company's facts.
+        df["val"] = pd.to_numeric(df["val"], errors="coerce")
+        return df

@@ -91,6 +91,15 @@ class Collector:
                     url, headers={"User-Agent": USER_AGENT})
                 with urllib.request.urlopen(req, timeout=timeout) as r:
                     return r.read()
+            except urllib.error.HTTPError as e:
+                last = e
+                # Deterministic client errors (not-found, forbidden, gone …)
+                # won't change on retry — fail fast instead of burning the
+                # full backoff. 429 (rate limited) and 5xx are transient, so
+                # they fall through to the retry/backoff path below.
+                if e.code in (400, 403, 404, 405, 410):
+                    break
+                time.sleep(2 ** attempt)
             except (urllib.error.URLError, TimeoutError, OSError) as e:
                 last = e
                 time.sleep(2 ** attempt)
