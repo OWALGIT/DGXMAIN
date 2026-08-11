@@ -1,0 +1,8 @@
+[Unit]
+Description=Run STOCKMIND paper-trader every hour
+[Timer]
+OnBootSec=3min
+OnCalendar=hourly
+Persistent=true
+[Install]
+WantedBy=timers.target

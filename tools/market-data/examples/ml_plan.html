@@ -1,0 +1,172 @@
+<title>Quant-AI on 2× DGX Spark — engine &amp; architecture plan</title>
+<style>
+:root{--bg:#f3f5f7;--panel:#fff;--panel2:#eaeef2;--ink:#141a21;--muted:#5a6572;--line:#d3dae2;
+ --grid:#e4e9ef;--accent:#1f7a8c;--accent2:#c26a1b;--good:#1a7f37;--bad:#c4341c;--warn:#b6851a;
+ --shadow:0 1px 3px rgba(20,30,45,.08),0 10px 30px rgba(20,30,45,.06);
+ --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+ --sans:system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+ --serif:"Iowan Old Style",Palatino,Georgia,serif;}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+ --bg:#0b0f14;--panel:#131a22;--panel2:#0f151c;--ink:#dbe3ec;--muted:#8593a2;--line:#25303c;
+ --grid:#1a232d;--accent:#4fd0e3;--accent2:#e5964a;--good:#3fb950;--bad:#f85149;--warn:#e3b341;
+ --shadow:0 1px 0 rgba(255,255,255,.03),0 14px 44px rgba(0,0,0,.55);}}
+:root[data-theme="dark"]{--bg:#0b0f14;--panel:#131a22;--panel2:#0f151c;--ink:#dbe3ec;--muted:#8593a2;--line:#25303c;
+ --grid:#1a232d;--accent:#4fd0e3;--accent2:#e5964a;--good:#3fb950;--bad:#f85149;--warn:#e3b341;
+ --shadow:0 1px 0 rgba(255,255,255,.03),0 14px 44px rgba(0,0,0,.55);}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6;padding:0 0 80px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+h1,h2,h3{text-wrap:balance;margin:0}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.lbl{font-family:var(--mono);font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)}
+header{padding:44px 0 28px;border-bottom:1px solid var(--line);margin-bottom:26px;
+ background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 8%,var(--panel)),var(--bg))}
+header .wrap{display:flex;flex-direction:column;gap:13px}
+h1{font-size:clamp(27px,4.4vw,44px);font-weight:750;letter-spacing:-.02em;line-height:1.03}
+.dek{font-family:var(--serif);font-size:clamp(16px,2vw,20px);color:var(--muted);max-width:66ch}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:3px}
+.chip{font-family:var(--mono);font-size:11.5px;border:1px solid var(--line);border-radius:999px;padding:4px 11px;color:var(--muted);background:var(--panel2)}
+.chip b{color:var(--ink)}
+section{margin-bottom:40px}
+.shead{display:flex;align-items:baseline;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.shead h2{font-size:22px;font-weight:720;letter-spacing:-.01em}
+.shead .n{font-family:var(--mono);color:var(--accent);font-size:13px}
+.note{color:var(--muted);font-size:14px;max-width:80ch;margin:0 0 16px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.callout{background:var(--panel2);border-left:3px solid var(--accent2);border-radius:0 10px 10px 0;padding:14px 18px;margin:8px 0}
+.callout b{color:var(--ink)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:10px 11px;text-align:left;border-bottom:1px solid var(--grid);vertical-align:top}
+thead th{color:var(--muted);font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;border-bottom:1px solid var(--line)}
+td .mono,.tier{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.tier{font-weight:700;color:var(--accent)}
+.pill{font-family:var(--mono);font-size:10.5px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);white-space:nowrap}
+.fit-hi{color:var(--good);border-color:color-mix(in srgb,var(--good) 45%,var(--line))}
+.fit-mid{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 45%,var(--line))}
+svg{display:block;width:100%;height:auto}text{font-family:var(--mono);fill:var(--ink)}
+.metric{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:4px 0 0}
+.metric .m{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 15px;box-shadow:var(--shadow)}
+.metric .v{font-family:var(--mono);font-size:23px;font-weight:650}
+.metric .k{margin-top:4px}.metric .s{color:var(--muted);font-size:12px;margin-top:6px}
+ol.road{list-style:none;counter-reset:p;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
+ol.road li{counter-increment:p;display:grid;grid-template-columns:34px 1fr;gap:13px;align-items:start;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px;box-shadow:var(--shadow)}
+ol.road li::before{content:"P" counter(p);font-family:var(--mono);font-weight:700;color:var(--accent);background:var(--panel2);border:1px solid var(--line);border-radius:8px;height:30px;display:flex;align-items:center;justify-content:center;font-size:12px}
+ol.road b{font-size:14.5px}ol.road .d{color:var(--muted);font-size:13px;display:block;margin-top:2px}
+ol.road .where{font-family:var(--mono);font-size:10.5px;color:var(--accent2);margin-left:8px}
+.guard{display:flex;flex-wrap:wrap;gap:8px}
+.guard span{font-size:12.5px;font-family:var(--mono);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 10px;color:var(--muted)}
+footer{color:var(--muted);font-size:12.5px;border-top:1px solid var(--line);padding-top:18px;font-family:var(--mono);line-height:1.6}
+@media(max-width:800px){.grid2{grid-template-columns:1fr}.metric{grid-template-columns:1fr}}
+</style>
+<header><div class="wrap">
+ <div class="eyebrow">Quant-AI build plan · 2× NVIDIA GB10</div>
+ <h1>Teaching two DGX Sparks to trade the datalake</h1>
+ <p class="dek">A concrete engine-and-architecture plan for turning 2.4 GB of cross-asset + alt-data on Storj into a learning trading system — matched to the exact hardware you have, and grounded in a baseline that already ran.</p>
+ <div class="chips">
+  <span class="chip">2× <b>GB10 Grace-Blackwell</b></span><span class="chip"><b>128 GB</b> unified each</span>
+  <span class="chip">20-core ARM · 3.6 TB NVMe</span><span class="chip">torch 2.11 · CUDA 13 · bf16 ✓</span>
+  <span class="chip"><b>73</b> datasets · <b>1,683</b> parquet</span>
+ </div>
+</div></header>
+<div class="wrap">
+
+ <section>
+  <div class="shead"><span class="n">00</span><h2>The reality check that ran on DGXSEC</h2></div>
+  <p class="note">Before choosing engines, I trained a walk-forward LightGBM to predict next-day S&amp;P direction from 10 assets — end-to-end on your GB10. The result sets the whole strategy.</p>
+  <div class="metric">
+   <div class="m"><div class="v">51.9%</div><div class="k lbl">next-day accuracy</div><div class="s">AUC 0.516 · a coin is 50%. Daily index timing is ≈ unpredictable.</div></div>
+   <div class="m"><div class="v" style="color:var(--bad)">0.41</div><div class="k lbl">strategy Sharpe</div><div class="s">long/flat, 5 bp costs — <b>loses</b> to buy &amp; hold (0.79).</div></div>
+   <div class="m"><div class="v" style="color:var(--good)">✓</div><div class="k lbl">pipeline proven</div><div class="s">2,388 OOS days, 20 features, on-box. The loop works — the naive target doesn't.</div></div>
+  </div>
+  <div class="callout"><b>So the edge isn't index timing.</b> Top features were DXY, HYG (credit), momentum &amp; VIX — cross-asset context matters, but a single index's daily sign is noise. The plan below spends the compute where edges actually live: <b>cross-sectional ranking</b> (which of 503 stocks outperform), <b>multi-horizon &amp; vol-targeted</b> returns, <b>regime conditioning</b>, and the <b>alt-data signals that survived the bootstrap</b>.</div>
+ </section>
+
+ <section>
+  <div class="shead"><span class="n">01</span><h2>Two planes, two machines</h2></div>
+  <p class="note">DGXMAIN already runs Dify, Postgres, nginx — it's your app node. DGXSEC is clean — make it the compute node. Storj stays the shared datalake and model registry; Tailscale links them.</p>
+  <div class="panel"><svg viewBox="0 0 1040 300" role="img" aria-label="two-plane architecture">
+    <rect x="18" y="40" width="470" height="228" rx="14" fill="var(--panel2)" stroke="var(--line)"/>
+    <rect x="552" y="40" width="470" height="228" rx="14" fill="var(--panel2)" stroke="var(--line)"/>
+    <text x="38" y="28" font-size="13" fill="var(--accent)">DGXMAIN — data &amp; serving plane</text>
+    <text x="572" y="28" font-size="13" fill="var(--accent2)">DGXSEC — training &amp; compute plane</text>
+    <g font-size="12">
+     <rect x="38" y="52" width="205" height="46" rx="8" fill="var(--panel)" stroke="var(--line)"/><text x="50" y="72">Collectors → Storj ETL</text><text x="50" y="88" fill="var(--muted)">ingest · 73 datasets</text>
+     <rect x="263" y="52" width="205" height="46" rx="8" fill="var(--panel)" stroke="var(--line)"/><text x="275" y="72">Feature store</text><text x="275" y="88" fill="var(--muted)">Postgres + parquet</text>
+     <rect x="38" y="110" width="205" height="46" rx="8" fill="var(--panel)" stroke="var(--line)"/><text x="50" y="130">Backtest / paper-trade</text><text x="50" y="146" fill="var(--muted)">walk-forward + costs</text>
+     <rect x="263" y="110" width="205" height="46" rx="8" fill="var(--panel)" stroke="var(--line)"/><text x="275" y="130">Serving API + Dify</text><text x="275" y="146" fill="var(--muted)">daily signals · agents</text>
+     <rect x="38" y="168" width="430" height="40" rx="8" fill="var(--panel)" stroke="var(--line)"/><text x="50" y="192">Scheduler (cron / nomad) — nightly refresh &amp; retrain triggers</text>
+     <rect x="38" y="216" width="430" height="40" rx="8" fill="var(--panel)" stroke="var(--line)"/><text x="50" y="240" fill="var(--muted)">already live here: Dify · Postgres · nginx · browserless</text>
+
+     <rect x="572" y="52" width="205" height="46" rx="8" fill="var(--panel)" stroke="var(--line)"/><text x="584" y="72">GBM trainers</text><text x="584" y="88" fill="var(--muted)">LightGBM / XGB / CatBoost</text>
+     <rect x="797" y="52" width="205" height="46" rx="8" fill="var(--panel)" stroke="var(--line)"/><text x="809" y="72">Deep-TS + foundation</text><text x="809" y="88" fill="var(--muted)">TTM · Chronos · TFT (fine-tune)</text>
+     <rect x="572" y="110" width="205" height="46" rx="8" fill="var(--panel)" stroke="var(--line)"/><text x="584" y="130">RL policy</text><text x="584" y="146" fill="var(--muted)">FinRL · SB3 (PPO/SAC)</text>
+     <rect x="797" y="110" width="205" height="46" rx="8" fill="var(--panel)" stroke="var(--line)"/><text x="809" y="130">LLM alt-data (vLLM)</text><text x="809" y="146" fill="var(--muted)">news → signal · LoRA</text>
+     <rect x="572" y="168" width="430" height="40" rx="8" fill="var(--panel)" stroke="var(--line)"/><text x="584" y="192">Optuna HPO · MLflow tracking · walk-forward CV</text>
+     <rect x="572" y="216" width="430" height="40" rx="8" fill="var(--panel)" stroke="var(--line)"/><text x="584" y="240" fill="var(--muted)">128 GB unified → fit big models &amp; long context on one box</text>
+    </g>
+    <g stroke="var(--accent)" stroke-width="2" fill="none" opacity=".8">
+     <path d="M488 96 H552" marker-end="url(#a)"/><path d="M552 150 H488" marker-end="url(#a)"/></g>
+    <text x="500" y="88" font-size="10.5" fill="var(--muted)">features →</text>
+    <text x="500" y="168" font-size="10.5" fill="var(--muted)">← models</text>
+    <text x="520" y="292" font-size="11" fill="var(--muted)" text-anchor="middle">Storj datalake + model registry · Tailscale</text>
+    <defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="var(--accent)"/></marker></defs>
+  </svg></div>
+ </section>
+
+ <section>
+  <div class="shead"><span class="n">02</span><h2>AI engines to train — matched to GB10</h2></div>
+  <p class="note">GB10's strength is FP4/FP8 throughput + 128 GB unified memory (great for fine-tuning &amp; inference), with modest memory bandwidth (so not a from-scratch mega-training rig). Every engine below fits that profile and installs on ARM (aarch64).</p>
+  <div class="panel" style="overflow-x:auto"><table>
+   <thead><tr><th>Tier</th><th>Engine</th><th>What it learns on your data</th><th>GB10 fit</th></tr></thead>
+   <tbody>
+    <tr><td class="tier">0</td><td><b>Feature store + validation harness</b><br><span class="mono" style="color:var(--muted)">polars · pyarrow · custom</span></td><td>Leakage-safe forward-return labels (t+1/5/20), purged walk-forward CV, transaction-cost backtest. The foundation everything else trusts.</td><td><span class="pill fit-hi">CPU · trivial</span></td></tr>
+    <tr><td class="tier">1</td><td><b>Gradient-boosted trees</b><br><span class="mono" style="color:var(--muted)">LightGBM · XGBoost · CatBoost</span></td><td><b>Cross-sectional stock ranking</b> (which of 503 names outperform), sector rotation, vol-regime classification. Where tabular market edge usually lives. Already installed &amp; proven.</td><td><span class="pill fit-hi">best ROI</span></td></tr>
+    <tr><td class="tier">2</td><td><b>TS foundation models (fine-tune)</b><br><span class="mono" style="color:var(--muted)">IBM TinyTimeMixer · Chronos-Bolt · TimesFM · Moirai · Lag-Llama</span></td><td>Pretrained forecasters you fine-tune on the panel for multi-horizon price/vol forecasts with uncertainty. TTM is tiny → fine-tunes in minutes on GB10.</td><td><span class="pill fit-hi">fine-tune ✓</span></td></tr>
+    <tr><td class="tier">2</td><td><b>Deep TS (from scratch)</b><br><span class="mono" style="color:var(--muted)">PatchTST · iTransformer · N-HiTS · TFT</span><br><span class="mono" style="color:var(--muted)">neuralforecast · pytorch-forecasting</span></td><td>TFT gives quantile forecasts + feature importance + regime attention — interpretable, uncertainty-aware. Trains comfortably at this data size.</td><td><span class="pill fit-hi">trains ✓</span></td></tr>
+    <tr><td class="tier">3</td><td><b>Reinforcement learning</b><br><span class="mono" style="color:var(--muted)">FinRL · stable-baselines3 (PPO/SAC)</span></td><td>Learns a <b>position-sizing / timing policy</b> over features + forecasts, optimizing risk-adjusted return under costs — not just a prediction, an action.</td><td><span class="pill fit-mid">GPU · moderate</span></td></tr>
+    <tr><td class="tier">4</td><td><b>Local LLM for alt-data</b><br><span class="mono" style="color:var(--muted)">vLLM / TensorRT-LLM · PEFT/LoRA</span></td><td>Turn GDELT / news / filings into structured signals; LoRA-fine-tune a small LLM for financial-event labeling. Orchestrate via Dify on DGXMAIN.</td><td><span class="pill fit-hi">FP4/FP8 inference ✓</span></td></tr>
+   </tbody>
+  </table></div>
+ </section>
+
+ <section>
+  <div class="shead"><span class="n">03</span><h2>Where the profit actually hides</h2></div>
+  <div class="grid2">
+   <div class="panel"><div class="lbl" style="margin-bottom:8px">Do</div>
+    <ul style="margin:0;padding-left:18px;line-height:1.7;font-size:14px">
+     <li><b>Cross-sectional</b>, not index timing — rank 503 stocks by expected relative return.</li>
+     <li><b>Multi-horizon</b> (5/20-day) &amp; <b>vol-targeted</b> labels — smoother, more predictable than 1-day sign.</li>
+     <li><b>Regime-condition</b> on VIX / credit (HYG) / curve — the baseline said these matter.</li>
+     <li><b>Alt-data that survived the bootstrap</b>: attention (Margin-call/Recession lookups), shipping (Red Sea → credit).</li>
+     <li><b>Ensemble</b> GBM + fine-tuned TS foundation; let RL size the bets.</li>
+    </ul></div>
+   <div class="panel"><div class="lbl" style="margin-bottom:8px">Guardrails (non-negotiable)</div>
+    <div class="guard">
+     <span>no look-ahead / leakage</span><span>purged walk-forward CV</span><span>transaction costs + slippage</span>
+     <span>survivorship-aware universe</span><span>multiple-testing = bootstrap</span><span>capacity &amp; turnover limits</span>
+     <span>paper-trade before real</span><span>monitor signal decay</span>
+    </div>
+    <p class="note" style="margin-top:12px">The bootstrap discipline from the butterfly study carries in: with thousands of features × horizons, most "edges" are mirages. Every model earns its keep on out-of-sample, cost-aware returns — or it's cut.</p>
+   </div>
+  </div>
+ </section>
+
+ <section>
+  <div class="shead"><span class="n">04</span><h2>Roadmap</h2></div>
+  <ol class="road">
+   <li><div><b>Feature store + validation harness <span class="where">DGXMAIN</span></b><span class="d">Storj → leakage-safe daily feature matrix + forward-return labels; purged walk-forward + cost backtest. (Seeded: cross-asset panel + bootstrap already built.)</span></div></li>
+   <li><div><b>GBM cross-sectional ranker + sector rotation <span class="where">DGXSEC</span></b><span class="d">LightGBM to rank the 503 names &amp; rotate sectors; target a real, cost-aware Sharpe &gt; buy-&amp;-hold. Optuna HPO, MLflow tracking.</span></div></li>
+   <li><div><b>TS foundation fine-tune <span class="where">DGXSEC</span></b><span class="d">Fine-tune TinyTimeMixer / Chronos for multi-horizon forecasts + uncertainty; ensemble with the GBM.</span></div></li>
+   <li><div><b>RL sizing layer <span class="where">DGXSEC</span></b><span class="d">FinRL/PPO learns position sizing &amp; timing over forecasts + features, optimizing risk-adjusted return under costs.</span></div></li>
+   <li><div><b>LLM alt-data pipeline <span class="where">both</span></b><span class="d">vLLM on GB10 turns GDELT/news into signals; Dify agent on DGXMAIN orchestrates &amp; explains the daily book.</span></div></li>
+   <li><div><b>Serving + paper-trade <span class="where">DGXMAIN</span></b><span class="d">Daily signal API + dashboard; paper-trade live, monitor decay, promote only what survives.</span></div></li>
+  </ol>
+ </section>
+
+ <footer>
+  Hardware verified live on DGXSEC/DGXMAIN via MCP · baseline trained on-box (LightGBM, 2,388 OOS days) · engines selected for aarch64 + GB10 (FP4/FP8 + 128 GB unified) · data = market-data Storj bucket.
+  Research &amp; engineering plan — not trading advice. Markets are near-efficient; edges are small, decaying, and must be proven out-of-sample net of costs.
+ </footer>
+</div>

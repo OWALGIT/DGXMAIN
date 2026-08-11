@@ -1,0 +1,4 @@
+secrets.env
+state.json
+journal.jsonl
+config.json.bak

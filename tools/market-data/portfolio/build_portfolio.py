@@ -1,0 +1,122 @@
+import json
+P=json.load(open('portfolio.json'))
+DATA=json.dumps(P,separators=(',',':'))
+HTML=r"""<title>STOCKMIND Tactical — $10k, Aug 2026</title>
+<style>
+:root{--bg:#f4f5f7;--panel:#fff;--panel2:#eaedf1;--ink:#151a20;--muted:#5a6472;--line:#d5dae1;--grid:#e6e9ee;
+ --accent:#b8860b;--eq:#2f6fed;--gold:#c9971f;--def:#1a7f37;--cash:#5a6472;--neg:#c4341c;
+ --shadow:0 1px 3px rgba(20,30,45,.08),0 10px 30px rgba(20,30,45,.06);
+ --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;--serif:"Iowan Old Style",Palatino,Georgia,serif;}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0a0d13;--panel:#131923;--panel2:#0f141d;--ink:#dbe3ec;--muted:#8593a2;--line:#242e3b;--grid:#1a232e;
+ --accent:#e8b339;--eq:#5b8dff;--gold:#e8b339;--def:#3fb950;--cash:#8593a2;--neg:#f85149;
+ --shadow:0 1px 0 rgba(255,255,255,.03),0 14px 44px rgba(0,0,0,.55);}}
+:root[data-theme="dark"]{--bg:#0a0d13;--panel:#131923;--panel2:#0f141d;--ink:#dbe3ec;--muted:#8593a2;--line:#242e3b;--grid:#1a232e;
+ --accent:#e8b339;--eq:#5b8dff;--gold:#e8b339;--def:#3fb950;--cash:#8593a2;--neg:#f85149;--shadow:0 1px 0 rgba(255,255,255,.03),0 14px 44px rgba(0,0,0,.55);}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;padding:0 0 70px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1060px;margin:0 auto;padding:0 22px}
+h1,h2{text-wrap:balance;margin:0}.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)}
+header{padding:38px 0 24px;border-bottom:1px solid var(--line);margin-bottom:24px;background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 8%,var(--panel)),var(--bg))}
+header .wrap{display:flex;flex-direction:column;gap:11px}
+h1{font-size:clamp(25px,4.2vw,40px);font-weight:750;letter-spacing:-.02em}
+.chips{display:flex;flex-wrap:wrap;gap:7px}.chip{font-family:var(--mono);font-size:11.5px;border:1px solid var(--line);border-radius:999px;padding:4px 11px;color:var(--muted);background:var(--panel2)}.chip b{color:var(--ink)}
+.regime{font-family:var(--serif);font-size:16px;color:var(--muted);max-width:80ch}
+section{margin-bottom:32px}
+.shead{display:flex;align-items:baseline;gap:11px;margin-bottom:12px}.shead h2{font-size:20px;font-weight:720}.shead .n{font-family:var(--mono);color:var(--accent);font-size:13px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow)}
+.top{display:grid;grid-template-columns:320px 1fr;gap:18px}
+.donut{display:flex;align-items:center;justify-content:center}
+.expo{display:flex;flex-direction:column;gap:10px;justify-content:center}
+.ex{display:grid;grid-template-columns:14px 1fr auto;gap:9px;align-items:center;font-size:14px}
+.ex i{width:12px;height:12px;border-radius:3px}.ex .v{font-family:var(--mono);font-weight:650}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:10px 10px;text-align:right;border-bottom:1px solid var(--grid);font-variant-numeric:tabular-nums}
+th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
+td.th{font-family:var(--sans);text-align:left;color:var(--muted);font-size:12.5px;line-height:1.4}
+thead th{color:var(--muted);font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid var(--line)}
+.tk{font-family:var(--mono);font-weight:700}.pct{font-family:var(--mono)}
+.trig{display:flex;flex-direction:column;gap:10px}
+.trig .t{border-left:3px solid var(--line);padding:8px 0 8px 14px}
+.trig .t.add{border-color:var(--def)}.trig .t.cut{border-color:var(--neg)}.trig .t.gold{border-color:var(--gold)}
+.trig .t b{font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase}
+.trig .t.add b{color:var(--def)}.trig .t.cut b{color:var(--neg)}.trig .t.gold b{color:var(--gold)}
+.trig .t .d{font-size:13.5px;color:var(--muted);margin-top:2px}
+.note{color:var(--muted);font-size:13.5px;max-width:82ch}
+.base{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.base .m{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 14px;box-shadow:var(--shadow)}
+.base .v{font-family:var(--mono);font-size:20px;font-weight:650}.base .k{margin-top:4px}
+footer{color:var(--muted);font-size:12px;border-top:1px solid var(--line);padding-top:16px;font-family:var(--mono);line-height:1.6}
+@media(max-width:800px){.top{grid-template-columns:1fr}.base{grid-template-columns:repeat(2,1fr)}.panel{overflow-x:auto}}
+</style>
+<header><div class="wrap">
+ <div class="eyebrow">STOCKMIND Tactical · learned from 2000→2026</div>
+ <h1>$10,000 — one-month book</h1>
+ <div class="chips"><span class="chip">entry <b id="c-entry"></b></span><span class="chip">review <b id="c-rev"></b></span><span class="chip">57% equity · 20% gold · 23% cash</span><span class="chip">bench: VOO &amp; 60/40</span></div>
+ <p class="regime" id="regime"></p>
+</div></header>
+<div class="wrap">
+ <section><div class="shead"><span class="n">01</span><h2>Allocation</h2></div>
+  <div class="top">
+   <div class="panel donut"><svg id="donut" viewBox="0 0 240 240" width="240" height="240"></svg></div>
+   <div class="panel expo" id="expo"></div>
+  </div>
+ </section>
+
+ <section><div class="shead"><span class="n">02</span><h2>Positions &amp; thesis</h2></div>
+  <div class="panel"><table id="pos"></table></div>
+ </section>
+
+ <section><div class="shead"><span class="n">03</span><h2>Rules — when we change it</h2></div>
+  <div class="panel trig" id="trig"></div>
+ </section>
+
+ <section><div class="shead"><span class="n">04</span><h2>Tracking baseline</h2></div>
+  <p class="note" style="margin-bottom:12px">Entry marks recorded from the datalake (2026-08-08). Run <span class="mono">track_portfolio.py</span> any day for live P&amp;L vs VOO. We compare at the review date.</p>
+  <div class="base" id="base"></div>
+ </section>
+ <footer id="foot"></footer>
+</div>
+<script>
+const P=__DATA__;
+const SVG='http://www.w3.org/2000/svg',el=(n,a)=>{const e=document.createElementNS(SVG,n);for(const k in a)e.setAttribute(k,a[k]);return e;};
+const colOf=p=>({VOO:'var(--eq)',QQQM:'var(--eq)',XLV:'var(--def)',GLD:'var(--gold)',SHY:'var(--cash)',XLP:'var(--def)'}[p.etf]||'var(--muted)');
+document.getElementById('c-entry').textContent=P.entry_date;
+document.getElementById('c-rev').textContent=P.review_date;
+document.getElementById('regime').textContent='Regime: '+P.regime;
+// donut
+(function(){const s=document.getElementById('donut'),cx=120,cy=120,r=86,w=30;let a=-Math.PI/2;
+ P.positions.forEach(p=>{const ang=p.weight*2*Math.PI,b=a+ang;
+  const x1=cx+r*Math.cos(a),y1=cy+r*Math.sin(a),x2=cx+r*Math.cos(b),y2=cy+r*Math.sin(b);
+  const large=ang>Math.PI?1:0;
+  s.appendChild(el('path',{d:`M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`,fill:'none',stroke:colOf(p),'stroke-width':w}));
+  a=b;});
+ s.appendChild(el('circle',{cx,cy,r:r-w/2-3,fill:'var(--panel)'}));
+ const t=el('text',{x:cx,y:cy-4,'text-anchor':'middle','font-size':22,'font-family':'var(--mono)',fill:'var(--ink)','font-weight':'700'});t.textContent='$10k';s.appendChild(t);
+ const t2=el('text',{x:cx,y:cy+16,'text-anchor':'middle','font-size':10,'font-family':'var(--mono)',fill:'var(--muted)'});t2.textContent='6 positions';s.appendChild(t2);
+})();
+// exposure legend (per position)
+document.getElementById('expo').innerHTML=P.positions.map(p=>
+ `<div class="ex"><i style="background:${colOf(p)}"></i><div><b>${p.etf}</b> <span style="color:var(--muted)">${p.name}</span></div><div class="v">${(p.weight*100).toFixed(0)}% · $${p.usd.toLocaleString()}</div></div>`).join('')+
+ `<div class="ex" style="border-top:1px solid var(--grid);padding-top:8px;margin-top:2px"><i style="background:transparent"></i><div class="lbl">buckets</div><div class="v" style="font-size:12px">eq ${(P.exposure.equity*100)|0}% · gold ${(P.exposure.gold*100)|0}% · cash ${(P.exposure.cash_duration*100)|0}%</div></div>`;
+// positions table
+let h='<thead><tr><th>ETF</th><th>Sleeve</th><th>Weight</th><th>$</th><th>Entry</th><th>Thesis</th></tr></thead><tbody>';
+P.positions.forEach(p=>{h+=`<tr><td class="tk" style="color:${colOf(p)}">${p.etf}</td><td>${p.name}</td><td class="pct">${(p.weight*100).toFixed(0)}%</td><td class="pct">$${p.usd.toLocaleString()}</td><td class="pct">${p.entry.toLocaleString()}<span style="color:var(--muted);font-size:10px"> ${p.unit}</span></td><td class="th">${p.thesis}</td></tr>`;});
+document.getElementById('pos').innerHTML=h+'</tbody>';
+// triggers
+const T=P.rebalance_triggers;
+document.getElementById('trig').innerHTML=
+ `<div class="t add"><b>▲ Add risk</b><div class="d">${T.add_risk}</div></div>`+
+ `<div class="t cut"><b>▼ Cut risk</b><div class="d">${T.cut_risk}</div></div>`+
+ `<div class="t gold"><b>◆ Gold stop</b><div class="d">${T.gold_stop}</div></div>`+
+ `<div class="t"><b style="color:var(--muted)">◷ Not yet</b><div class="d">${P.watchlist_not_yet.join(' · ')}</div></div>`;
+// baseline metrics
+document.getElementById('base').innerHTML=[
+ {v:'$10,000',k:'starting value'},{v:'+0.00%',k:'return at entry'},{v:'β ≈ 0.55',k:'vs S&P (est.)'},{v:P.review_date,k:'review date'}
+].map(m=>`<div class="m"><div class="v">${m.v}</div><div class="k lbl">${m.k}</div></div>`).join('');
+document.getElementById('foot').innerHTML=`Learned from 2000→2026 datalake stats (gold Sharpe 0.73, XLV Sharpe 0.47, long bonds &amp; HYG weak) · regime-tilted · entry marks ${P.entry_date} · tracked via track_portfolio.py. Educational research, not personalized investment advice.`;
+</script>
+"""
+open('portfolio.html','w').write(HTML.replace('__DATA__',DATA))
+print("wrote portfolio.html")
