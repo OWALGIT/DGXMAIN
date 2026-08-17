@@ -8,18 +8,48 @@
 # Columns are whitespace-separated. Lines starting with # are ignored.
 # Edit groups/users to match reality. Keep this file in git (no secrets here).
 #
-# name            ip                groups                    user
-aiapi             100.87.7.40       manager,all
-vps-custmer       100.64.137.68     vps,all
-vpscld            100.99.240.28     vps,all
-vps-gra6          100.101.47.112    vps,all
-vpsall            100.68.77.46      vps,all
-vps-office        100.85.35.45      vps,all
-openwebui-vps     100.115.82.76     vps,app,all
-nerve-hub         100.89.89.47      app,all
-arcai             100.81.132.108    app,gpu,all
-vps-dioneto       100.106.171.90    vps,all
-storai            100.92.89.14      storage,all
-dgxmain           100.124.217.84    dgx,gpu,all
-dgxsec            100.78.185.72     dgx,gpu,all
-5060ihome         100.90.81.47      gpu,home,all
+# Location/provider tags added 2026-08-17 from a measured survey — see
+# docs/cloud-inventory.md. `cloud` vs `onprem` is the split that matters for
+# the cloud-exit work; `contabo`/`ovh` map 1:1 to billing lines.
+#
+# name            ip                groups                              user
+aiapi             100.87.7.40       manager,cloud,contabo,all
+vps-custmer       100.64.137.68     vps,cloud,ovh,all
+vpscld            100.99.240.28     vps,cloud,contabo,all
+vps-gra6          100.101.47.112    vps,cloud,ovh,all
+vpsall            100.68.77.46      vps,cloud,ovh,offline,all
+vps-office        100.85.35.45      vps,cloud,ovh,all
+openwebui-vps     100.115.82.76     vps,app,cloud,ovh,vm-on-storai,all
+nerve-hub         100.89.89.47      app,cloud,contabo,all
+arcai             100.81.132.108    app,cloud,ovh,baremetal,all
+vps-dioneto       100.106.171.90    vps,cloud,ovh,vm-on-storai,all
+storai            100.92.89.14      storage,hypervisor,cloud,ovh,baremetal,all
+dgxmain           100.124.217.84    dgx,gpu,onprem,arm64,all
+dgxsec            100.78.185.72     dgx,gpu,onprem,arm64,all
+5060ihome         100.90.81.47      gpu,home,onprem,all
+#
+# ---------------------------------------------------------------------------
+# Known machines deliberately NOT enabled above (would change `fleet run all`)
+# ---------------------------------------------------------------------------
+# bit001          194.146.12.114    manager,cloud,contabo   # the MCP hub this
+#                   agent connects THROUGH. Managing it via the fleet CLI while
+#                   it proxies the fleet is a foot-gun; drive it directly.
+#
+# c001            100.79.164.8      cloud,unknown   # online, tag:hub in
+#                   Tailscale, our fleet key is rejected. Identify before use.
+# meni-office0    100.103.133.48    office,unknown  # online, key rejected.
+# nitay           (NAT on storai)   cloud,ovh,vm-on-storai  # nitay.yohay.ai,
+#                   no Tailscale node of its own — reach via storai/virsh.
+# df001-brn       84.247.130.13     cloud,contabo   # serves df001.yohay.ai
+#                   (Dify) + brn.yohay.ai. HTTP/HTTPS up, SSH closed, no access.
+# (dead)          162.19.126.209    cloud,ovh       # all ports closed; 12 stale
+#                   yohay.ai DNS records still point here.
+#
+# Notes on entries above:
+#   - `vpsall` is a powered-off VM on storai, not an independent VPS. Its
+#     cloudflared tunnels show healthy because the connector runs on
+#     openwebui-vps.
+#   - `arcai` carried a `gpu` tag but has no GPU (nvidia-smi returns nothing);
+#     tag removed.
+#   - `openwebui-vps`, `vps-dioneto`, `nitay`, `vpsall` are all guests on
+#     `storai`. Powering off storai takes all four with it.
