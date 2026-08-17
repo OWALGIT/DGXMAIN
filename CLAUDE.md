@@ -32,15 +32,25 @@ per-host labelled output.
 `inventory/fleet.hosts` — one host per line: `name  ip  groups  [user]`.
 Every host is implicitly in the `all` group. Current groups:
 
-| group     | hosts |
-|-----------|-------|
-| `manager` | aiapi |
-| `dgx`     | dgxmain, dgxsec |
-| `gpu`     | dgxmain, dgxsec, arcai, 5060ihome |
-| `vps`     | vps-custmer, vpscld, vps-gra6, vpsall, vps-office, vps-dioneto, openwebui-vps |
-| `app`     | openwebui-vps, nerve-hub, arcai |
-| `storage` | storai |
-| `home`    | 5060ihome |
+| group      | hosts |
+|------------|-------|
+| `manager`  | aiapi |
+| `dgx`      | dgxmain, dgxsec |
+| `gpu`      | dgxmain, dgxsec, 5060ihome |
+| `vps`      | vps-custmer, vpscld, vps-gra6, vpsall, vps-office, vps-dioneto, openwebui-vps |
+| `app`      | openwebui-vps, nerve-hub, arcai |
+| `storage`  | storai |
+| `home`     | 5060ihome |
+| `cloud`    | everything except dgxmain, dgxsec, 5060ihome |
+| `onprem`   | dgxmain, dgxsec, 5060ihome |
+| `contabo`  | aiapi, vpscld, nerve-hub |
+| `ovh`      | storai, arcai, vps-custmer, vps-gra6, vps-office, openwebui-vps, vps-dioneto, vpsall |
+
+`vm-on-storai` marks guests of the `storai` hypervisor (openwebui-vps,
+vps-dioneto, vpsall) — powering off `storai` takes them all down.
+
+**Full cloud footprint, measured:** [`docs/cloud-inventory.md`](docs/cloud-inventory.md).
+**Plan for leaving the cloud:** [`docs/cloud-exit-plan.md`](docs/cloud-exit-plan.md).
 
 Edit that file to add/remove machines or re-tag them. It contains **no secrets**
 and is tracked in git.
