@@ -1,0 +1,268 @@
+# host	zone	edge	verdict	http	detail
+32.yohay.ai	yohay.ai	gama2	TUNNEL_DOWN	530	cf 1033 — no cloudflared connected
+7.yohay.ai	yohay.ai	162.19.126.209	TIMEOUT	-	Operation timed out after 15002 milliseconds with 0 bytes received
+acme.yohay.ai	yohay.ai	162.19.126.209	TIMEOUT	-	Operation timed out after 15001 milliseconds with 0 bytes received
+ad.yohayai.com	yohayai.com	storai-wp	NO_INGRESS	404	tunnel up, no ingress rule (probed from IL)
+adai.yohayai.com	yohayai.com	dgxsec	TUNNEL_DOWN	530	cf 1033 — no cloudflared connected (probed from IL)
+admin-gama2.yohayai.com	yohayai.com	gama2	TUNNEL_DOWN	530	cf 1033 — no cloudflared connected
+admin.yohay.ai	yohay.ai	vpsall-yohay	OK	200	0.878446s
+agent1.yohay.ai	yohay.ai	5060ihome	SERVICE_DOWN	502	edge up, backend not answering (http 502)
+agent2.yohay.ai	yohay.ai	5060ihome	SERVICE_DOWN	502	edge up, backend not answering (http 502)
+agents.yohay.ai	yohay.ai	5060ihome	SERVICE_DOWN	502	edge up, backend not answering (http 502)
+ai.yohay.ai	yohay.ai	wix	TLS_FAIL	-	OpenSSL SSL_connect: SSL_ERROR_SYSCALL in connection to ai.yohay.ai:443 
+aiapi.yohay.ai	yohay.ai	31.187.74.8	TLS_FAIL	-	OpenSSL/3.0.13: error:0A000438:SSL routines::tlsv1 alert internal error
+aiapi.yohayai.com	yohayai.com	31.187.74.8	NOT_FOUND	404	0.496747s
+all.yohay.ai	yohay.ai	gama2	AUTH_SSO	302	Cloudflare Access login
+allai.yohay.ai	yohay.ai	dioneto	OK	200	0.651315s
+analytics.yohayai.com	yohayai.com	storai-wp	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+annima.ai	annima.ai	wix	REDIRECT	301	-> https://www.annima.ai/
+api.owalai.com	owalai.com	34.45.166.153	TIMEOUT	-	Operation timed out after 15001 milliseconds with 0 bytes received
+api.yohay.ai	yohay.ai	213.32.69.7	REDIRECT	302	-> https://api.yohay.ai/app/login.html
+api.yohayai.com	yohayai.com	dgxmain	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+arc.yohay.ai	yohay.ai	arcai-wp	AUTH_SSO	302	Cloudflare Access login
+arcai.yohayai.com	yohayai.com	arcai-wp	AUTH_SSO	302	Cloudflare Access login
+astbit.yohay.ai	yohay.ai	5060ihome	OK	200	0.697049s
+aster-arcai.yohayai.com	yohayai.com	arcai-wp	AUTH_SSO	302	Cloudflare Access login
+aster-dgxmain.yohayai.com	yohayai.com	dgxmain	AUTH_SSO	302	Cloudflare Access login
+aster-dgxsec.yohayai.com	yohayai.com	dgxsec	AUTH_SSO	302	Cloudflare Access login
+aster-gama2.yohayai.com	yohayai.com	213.32.69.7	ORIGIN_TLS_FAIL	525	cf 525 — origin TLS handshake failed
+aster-storai.yohayai.com	yohayai.com	storai-wp	AUTH_SSO	302	Cloudflare Access login
+aster.yohay.ai	yohay.ai	5060ihome	AUTH	401	http 401 — service up, credentials required
+astermcp.vpsall.owalai.com	owalai.com	vpsall.owalai.com	TLS_FAIL	-	OpenSSL/3.0.13: error:0A000410:SSL routines::sslv3 alert handshake failure
+astmcp.yohay.ai	yohay.ai	5060ihome	NO_INGRESS	404	tunnel up, no ingress rule for this hostname
+auth.yohay.ai	yohay.ai	gama2	TUNNEL_DOWN	530	cf 1033 — no cloudflared connected
+beszel.vpsall.owalai.com	owalai.com	vpsall.owalai.com	TLS_FAIL	-	OpenSSL/3.0.13: error:0A000410:SSL routines::sslv3 alert handshake failure
+bit.yohay.ai	yohay.ai	213.32.69.7	OK	200	1.833526s
+bit001.yohay.ai	yohay.ai	194.146.12.114	OK	200	0.870563s
+bitfin.yohay.ai	yohay.ai	bitfin-arena	OK	200	0.714792s
+bo.yohay.ai	yohay.ai	162.19.126.209	TIMEOUT	-	Operation timed out after 15002 milliseconds with 0 bytes received
+boot.yohay.ai	yohay.ai	storai-wp	NO_INGRESS	404	tunnel up, no ingress rule for this hostname
+brain.yohay.ai	yohay.ai	gama2	TUNNEL_DOWN	530	cf 1033 — no cloudflared connected
+bridge.yohay.ai	yohay.ai	5060ihome	SERVICE_DOWN	502	edge up, backend not answering (http 502)
+brn.yohay.ai	yohay.ai	84.247.130.13	OK	200	1.009261s
+ca.yohayai.com	yohayai.com	storai-wp	NO_INGRESS	404	tunnel up, no ingress rule (probed from IL)
+cam.yohay.ai	yohay.ai	dgxmain-web	OK	200	0.676524s
+chat.yohay.ai	yohay.ai	5060ihome	SERVICE_DOWN	502	edge up, backend not answering (http 502)
+chat.yohayai.com	yohayai.com	storai-wp	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+chroma.vpsall.owalai.com	owalai.com	vpsall.owalai.com	TLS_FAIL	-	OpenSSL/3.0.13: error:0A000410:SSL routines::sslv3 alert handshake failure
+chtbit.yohay.ai	yohay.ai	5060ihome	OK	200	0.696178s
+clas.yohayai.com	yohayai.com	gama2	AUTH_SSO	302	Cloudflare Access login
+claw-arcai.yohayai.com	yohayai.com	arcai-wp	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+claw-dgxsec.yohayai.com	yohayai.com	dgxsec	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+claw-gama2.yohayai.com	yohayai.com	gama2	TUNNEL_DOWN	530	cf 1033 — no cloudflared connected
+claw-storai.yohayai.com	yohayai.com	storai-wp	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+clawbit.yohay.ai	yohay.ai	5060ihome	AUTH_SSO	302	Cloudflare Access login
+clawmcp.yohay.ai	yohay.ai	5060ihome	OK	200	0.676906s
+cld.yohay.ai	yohay.ai	167.86.110.205	SERVICE_DOWN	502	edge up, backend not answering (http 502)
+cloud.yohayai.com	yohayai.com	storai-wp	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+cmd.yohay.ai	yohay.ai	vps4-command	OK	200	0.480754s
+comfyui.yohay.ai	yohay.ai	5060ihome	NO_INGRESS	404	tunnel up, no ingress rule for this hostname
+comfyui.yohayai.com	yohayai.com	dgxmain	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+computeruse.vpsall.owalai.com	owalai.com	vpsall.owalai.com	TLS_FAIL	-	OpenSSL/3.0.13: error:0A000410:SSL routines::sslv3 alert handshake failure
+console.vpsall.owalai.com	owalai.com	vpsall.owalai.com	TLS_FAIL	-	OpenSSL/3.0.13: error:0A000410:SSL routines::sslv3 alert handshake failure
+controller.owalai.com	owalai.com	51.195.88.44	ORIGIN_UNREACHABLE	523	cf 523 — origin unreachable
+customers.yohay.ai	yohay.ai	162.19.126.209	TIMEOUT	-	Operation timed out after 15002 milliseconds with 0 bytes received
+cyber.yohayai.com	yohayai.com	storai-wp	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+dash-dgxmain.yohayai.com	yohayai.com	dgxmain	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+dash-dgxsec.yohayai.com	yohayai.com	dgxsec	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+dash.yohay.ai	yohay.ai	5060ihome	SERVICE_DOWN	502	edge up, backend not answering (http 502)
+dashboard.yohay.ai	yohay.ai	dgxmain	TUNNEL_DOWN	530	cf 1033 — no cloudflared connected
+db.yohay.ai	yohay.ai	5060ihome	NO_INGRESS	404	tunnel up, no ingress rule for this hostname
+dev.yohay.ai	yohay.ai	162.19.126.209	TIMEOUT	-	Operation timed out after 15001 milliseconds with 0 bytes received
+df001.yohay.ai	yohay.ai	84.247.130.13	REDIRECT	307	-> https://df001.yohay.ai/auth/refresh?redirect_url=%2F
+df002.yohay.ai	yohay.ai	vpsall-yohay	REDIRECT	307	-> https://df002.yohay.ai/auth/refresh?redirect_url=%2F
+dgxmain.yohayai.com	yohayai.com	dgxmain	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+dgxmainai.yohay.ai	yohay.ai	dgxmain	TUNNEL_DOWN	530	cf 1033 — no cloudflared connected
+dgxsec.yohayai.com	yohayai.com	dgxsec	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+dgxsecai.yohay.ai	yohay.ai	dgxsec	TUNNEL_DOWN	530	cf 1033 — no cloudflared connected
+dify.vpsall.owalai.com	owalai.com	vpsall.owalai.com	TLS_FAIL	-	OpenSSL/3.0.13: error:0A000410:SSL routines::sslv3 alert handshake failure
+dioneto-agents.yohay.ai	yohay.ai	dioneto	REDIRECT	302	-> https://dioneto-auth.yohay.ai/?rd=https%3A%2F%2Fdioneto-agents.yohay.ai%2F&rm=GET
+dioneto-auth.yohay.ai	yohay.ai	dioneto	OK	200	0.528158s
+dioneto-chat.yohay.ai	yohay.ai	dioneto	REDIRECT	302	-> https://dioneto-auth.yohay.ai/?rd=https%3A%2F%2Fdioneto-chat.yohay.ai%2F&rm=GET
+dioneto-cloud.yohay.ai	yohay.ai	dioneto	REDIRECT	302	-> https://dioneto-auth.yohay.ai/?rd=https%3A%2F%2Fdioneto-cloud.yohay.ai%2F&rm=GET
+dioneto-docs.yohay.ai	yohay.ai	dioneto	REDIRECT	302	-> https://dioneto-auth.yohay.ai/?rd=https%3A%2F%2Fdioneto-docs.yohay.ai%2F&rm=GET
+dioneto-help.yohay.ai	yohay.ai	dioneto	REDIRECT	302	-> https://dioneto-auth.yohay.ai/?rd=https%3A%2F%2Fdioneto-help.yohay.ai%2F&rm=GET
+dioneto-n8n.yohay.ai	yohay.ai	dioneto	REDIRECT	302	-> https://dioneto-auth.yohay.ai/?rd=https%3A%2F%2Fdioneto-n8n.yohay.ai%2F&rm=GET
+dioneto-portainer.yohay.ai	yohay.ai	dioneto	REDIRECT	302	-> https://dioneto-auth.yohay.ai/?rd=https%3A%2F%2Fdioneto-portainer.yohay.ai%2F&rm=GET
+dioneto-status.yohay.ai	yohay.ai	dioneto	REDIRECT	302	-> https://dioneto-auth.yohay.ai/?rd=https%3A%2F%2Fdioneto-status.yohay.ai%2F&rm=GET
+dioneto-vault.yohay.ai	yohay.ai	dioneto	REDIRECT	302	-> https://dioneto-auth.yohay.ai/?rd=https%3A%2F%2Fdioneto-vault.yohay.ai%2F&rm=GET
+dioneto-wa.yohay.ai	yohay.ai	dioneto	REDIRECT	302	-> https://dioneto-auth.yohay.ai/?rd=https%3A%2F%2Fdioneto-wa.yohay.ai%2F&rm=GET
+dioneto.yohay.ai	yohay.ai	dioneto	REDIRECT	302	-> https://dioneto-auth.yohay.ai/?rd=https%3A%2F%2Fdioneto.yohay.ai%2F&rm=GET
+docker.yohay.ai	yohay.ai	152.228.142.1	OK	200	1.006662s
+dokploy.vpsall.owalai.com	owalai.com	vpsall.owalai.com	TLS_FAIL	-	OpenSSL/3.0.13: error:0A000410:SSL routines::sslv3 alert handshake failure
+draw.yohay.ai	yohay.ai	5060ihome	NO_INGRESS	404	tunnel up, no ingress rule for this hostname
+draw.yohayai.com	yohayai.com	storai-wp	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+elk.yohay.ai	yohay.ai	5060ihome	NO_INGRESS	404	tunnel up, no ingress rule for this hostname
+elk.yohayai.com	yohayai.com	storai-wp	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+enroll.yohay.ai	yohay.ai	gama2	TUNNEL_DOWN	530	cf 1033 — no cloudflared connected
+fb.yohay.ai	yohay.ai	gama2	TUNNEL_DOWN	530	cf 1033 — no cloudflared connected
+finetune.yohayai.com	yohayai.com	dgxsec	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+fleet.yohay.ai	yohay.ai	5060ihome	TIMEOUT	-	Operation timed out after 15002 milliseconds with 0 bytes received
+fmsec.yohay.ai	yohay.ai	51.195.88.44	SERVICE_DOWN	502	edge up, backend not answering (http 502)
+frigate.vpsall.owalai.com	owalai.com	vpsall.owalai.com	TLS_FAIL	-	OpenSSL/3.0.13: error:0A000410:SSL routines::sslv3 alert handshake failure
+frigate.yohay.ai	yohay.ai	5060ihome	NO_INGRESS	404	tunnel up, no ingress rule for this hostname
+frigate.yohayai.com	yohayai.com	arcai-wp	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+fw.yohay.ai	yohay.ai	gama2	AUTH_SSO	302	Cloudflare Access login
+gama.yohay.ai	yohay.ai	gama2	AUTH_SSO	302	Cloudflare Access login
+gama2.yohayai.com	yohayai.com	gama2	TUNNEL_DOWN	530	cf 1033 — no cloudflared connected
+garage1.yohay.ai	yohay.ai	garage1	TUNNEL_DOWN	530	cf 1033 — no cloudflared connected
+gateway.yohay.ai	yohay.ai	storai-wp	AUTH_SSO	302	Cloudflare Access login
+git.yohay.ai	yohay.ai	5060ihome	SERVICE_DOWN	502	edge up, backend not answering (http 502)
+git.yohayai.com	yohayai.com	5060ihome	SERVICE_DOWN	502	edge up, backend not answering (http 502)
+grafana-hook.yohay.ai	yohay.ai	5060ihome	AUTH	403	http 403 — service up, access denied
+grafana.owalai.com	owalai.com	34.45.166.153	TIMEOUT	-	Operation timed out after 15002 milliseconds with 0 bytes received
+grafana.vpsall.owalai.com	owalai.com	vpsall.owalai.com	TLS_FAIL	-	OpenSSL/3.0.13: error:0A000410:SSL routines::sslv3 alert handshake failure
+grafana.yohay.ai	yohay.ai	5060ihome	SERVICE_DOWN	502	edge up, backend not answering (http 502)
+ha.vpsall.owalai.com	owalai.com	vpsall.owalai.com	TLS_FAIL	-	OpenSSL/3.0.13: error:0A000410:SSL routines::sslv3 alert handshake failure
+herbit.yohay.ai	yohay.ai	5060ihome	AUTH_SSO	302	Cloudflare Access login
+hermcp.yohay.ai	yohay.ai	5060ihome	SERVICE_DOWN	502	edge up, backend not answering (http 502)
+hermesmcp.yohay.ai	yohay.ai	5060ihome	AUTH	403	http 403 — service up, access denied
+hive.yohay.ai	yohay.ai	hivemind-hub	TUNNEL_DOWN	530	cf 1033 — no cloudflared connected
+hmdm.yohay.ai	yohay.ai	5060ihome	OK	200	0.688629s
+home.owalai.com	owalai.com	haos	OK	200	0.576065s
+home.yohay.ai	yohay.ai	dgxmain-web	OK	200	0.691415s
+home.yohayai.com	yohayai.com	storai-wp	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+hub.yohay.ai	yohay.ai	45.88.191.3	SERVICE_DOWN	502	edge up, backend not answering (http 502)
+k8s.yohay.ai	yohay.ai	162.19.126.209	TIMEOUT	-	Operation timed out after 15002 milliseconds with 0 bytes received
+keycloak.vpsall.owalai.com	owalai.com	vpsall.owalai.com	TLS_FAIL	-	OpenSSL/3.0.13: error:0A000410:SSL routines::sslv3 alert handshake failure
+ks8-aster.yohay.ai	yohay.ai	51.195.88.44	ORIGIN_TLS_FAIL	526	cf 526 — origin TLS handshake failed
+ks8-webui.yohay.ai	yohay.ai	51.195.88.44	ORIGIN_TLS_FAIL	526	cf 526 — origin TLS handshake failed
+ks8.owalai.com	owalai.com	5060ihome	SERVICE_DOWN	502	edge up, backend not answering (http 502)
+ldap.yohayai.com	yohayai.com	storai-wp	NO_INGRESS	404	tunnel up, no ingress rule (probed from IL)
+lib.yohay.ai	yohay.ai	45.88.191.3	TLS_FAIL	-	OpenSSL/3.0.13: error:0A000438:SSL routines::tlsv1 alert internal error
+librechat-dgxsec.yohay.ai	yohay.ai	dgxsec	TUNNEL_DOWN	530	cf 1033 — no cloudflared connected
+librechat.vpsall.owalai.com	owalai.com	vpsall.owalai.com	TLS_FAIL	-	OpenSSL/3.0.13: error:0A000410:SSL routines::sslv3 alert handshake failure
+librechat.yohay.ai	yohay.ai	dgxsec	TUNNEL_DOWN	530	cf 1033 — no cloudflared connected
+litellm.vpsall.owalai.com	owalai.com	vpsall.owalai.com	TLS_FAIL	-	OpenSSL/3.0.13: error:0A000410:SSL routines::sslv3 alert handshake failure
+llm-mcp.yohay.ai	yohay.ai	45.88.191.3	NOT_FOUND	404	0.957358s
+lxd.yohay.ai	yohay.ai	5060ihome	SERVICE_DOWN	502	edge up, backend not answering (http 502)
+maas.yohay.ai	yohay.ai	gama2	AUTH_SSO	302	Cloudflare Access login
+mail.yohayai.com	yohayai.com	gama2	TUNNEL_DOWN	530	cf 1033 — no cloudflared connected (probed from IL)
+matrix.yohay.ai	yohay.ai	5060ihome	NO_INGRESS	404	tunnel up, no ingress rule for this hostname
+matrix.yohayai.com	yohayai.com	storai-wp	AUTH_SSO	302	Cloudflare Access login
+mc001.yohay.ai	yohay.ai	194.146.12.114	NOT_FOUND	404	1.087528s
+mcui001.yohay.ai	yohay.ai	194.146.12.114	AUTH	401	http 401 — service up, credentials required
+mdm-arcai.yohayai.com	yohayai.com	arcai-wp	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+mdm-dgxmain.yohayai.com	yohayai.com	dgxmain	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+mdm-dgxsec.yohayai.com	yohayai.com	dgxsec	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+mdm-gama2.yohayai.com	yohayai.com	gama2	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+mdm-storai.yohayai.com	yohayai.com	storai-wp	AUTH_SSO	302	Cloudflare Access login
+meet.yohay.ai	yohay.ai	5060ihome	NO_INGRESS	404	tunnel up, no ingress rule for this hostname
+minio.yohay.ai	yohay.ai	5060ihome	NO_INGRESS	404	tunnel up, no ingress rule for this hostname
+monitor.yohay.ai	yohay.ai	5060ihome	NO_INGRESS	404	tunnel up, no ingress rule for this hostname
+monitor.yohayai.com	yohayai.com	storai-wp	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+n8n.dioneto.yohay.ai	yohay.ai	dioneto	NO_INGRESS	404	tunnel up, no ingress rule for this hostname
+n8n.vpsall.owalai.com	owalai.com	vpsall.owalai.com	TLS_FAIL	-	OpenSSL/3.0.13: error:0A000410:SSL routines::sslv3 alert handshake failure
+n8n.yohay.ai	yohay.ai	5060ihome	OK	200	0.710993s
+n8n.yohayai.com	yohayai.com	dgxmain	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+n8nmcp.yohay.ai	yohay.ai	5060ihome	AUTH	403	http 403 — service up, access denied
+netdata.yohay.ai	yohay.ai	45.88.191.3	AUTH	401	http 401 — service up, credentials required
+newtest02.yohay.ai	yohay.ai	5060ihome	SERVICE_DOWN	502	edge up, backend not answering (http 502)
+nitay.yohay.ai	yohay.ai	51.195.88.44	ORIGIN_TLS_FAIL	526	cf 526 — origin TLS handshake failed
+noc.yohay.ai	yohay.ai	vps4-command	OK	200	0.484463s
+nodered.vpsall.owalai.com	owalai.com	vpsall.owalai.com	TLS_FAIL	-	OpenSSL/3.0.13: error:0A000410:SSL routines::sslv3 alert handshake failure
+nodered.yohay.ai	yohay.ai	5060ihome	NO_INGRESS	404	tunnel up, no ingress rule for this hostname
+nodered.yohayai.com	yohayai.com	storai-wp	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+nomad.yohay.ai	yohay.ai	5060ihome	SERVICE_DOWN	502	edge up, backend not answering (http 502)
+nomad.yohayai.com	yohayai.com	dgxmain	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+nvr.yohayai.com	yohayai.com	51.178.66.135	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+nvrai.yohayai.com	yohayai.com	dgxsec	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+obd.yohay.ai	yohay.ai	5060ihome	OK	200	0.666634s
+ollama-arc.yohay.ai	yohay.ai	arcai-wp	AUTH_SSO	302	Cloudflare Access login
+ollama-dgxmain.yohayai.com	yohayai.com	dgxmain	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+ollama-dgxsec.yohayai.com	yohayai.com	dgxsec	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+ollama-gama.yohay.ai	yohay.ai	gama2	AUTH_SSO	302	Cloudflare Access login
+ollama.yohay.ai	yohay.ai	5060ihome	AUTH_SSO	302	Cloudflare Access login
+openclaw.yohay.ai	yohay.ai	5060ihome	AUTH_SSO	302	Cloudflare Access login
+openclaw.yohayai.com	yohayai.com	dgxmain	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+openclaw2.yohay.ai	yohay.ai	5060ihome	SERVICE_DOWN	502	edge up, backend not answering (http 502)
+openwebui.vpsall.owalai.com	owalai.com	vpsall.owalai.com	TLS_FAIL	-	OpenSSL/3.0.13: error:0A000410:SSL routines::sslv3 alert handshake failure
+ovh-mcp.yohay.ai	yohay.ai	gama2	TUNNEL_DOWN	530	cf 1033 — no cloudflared connected
+owalai.com	owalai.com	squarespace	REDIRECT	301	-> https://www.owalai.com/
+owui.yohay.ai	yohay.ai	storai-wp	AUTH_SSO	302	Cloudflare Access login
+paperless.dioneto.yohay.ai	yohay.ai	dioneto	NO_INGRESS	404	tunnel up, no ingress rule for this hostname
+pbx-gama2.yohayai.com	yohayai.com	gama2	TUNNEL_DOWN	530	cf 1033 — no cloudflared connected (probed from IL)
+pbx.yohay.ai	yohay.ai	162.19.126.209	TLS_FAIL	-	Recv failure: Connection reset by peer
+pg.yohay.ai	yohay.ai	5060ihome	NO_INGRESS	404	tunnel up, no ingress rule for this hostname
+phones.yohay.ai	yohay.ai	5060ihome	SERVICE_DOWN	502	edge up, backend not answering (http 502)
+portainer.dioneto.yohay.ai	yohay.ai	dioneto	NO_INGRESS	404	tunnel up, no ingress rule for this hostname
+portainer.vpsall.owalai.com	owalai.com	vpsall.owalai.com	TLS_FAIL	-	OpenSSL/3.0.13: error:0A000410:SSL routines::sslv3 alert handshake failure
+portainer.yohay.ai	yohay.ai	dgxsec	TUNNEL_DOWN	530	cf 1033 — no cloudflared connected
+portainer.yohayai.com	yohayai.com	dgxmain	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+portal.yohayai.com	yohayai.com	storai-wp	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+prometheus.yohay.ai	yohay.ai	5060ihome	SERVICE_DOWN	502	edge up, backend not answering (http 502)
+proxy.safewatch.yohay.ai	yohay.ai	51.195.88.44	NOT_FOUND	404	0.984221s
+radius.yohayai.com	yohayai.com	dgxsec	TUNNEL_DOWN	530	cf 1033 — no cloudflared connected (probed from IL)
+registry.yohay.ai	yohay.ai	5060ihome	SERVICE_DOWN	502	edge up, backend not answering (http 502)
+registry.yohayai.com	yohayai.com	storai-wp	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+rustdesk.yohay.ai	yohay.ai	5060ihome	NO_INGRESS	404	tunnel up, no ingress rule for this hostname
+s3.yohayai.com	yohayai.com	storai-wp	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+safescan.owalai.com	owalai.com	dgxmain	TUNNEL_DOWN	530	cf 1033 — no cloudflared connected
+safewatch.yohay.ai	yohay.ai	213.32.69.7	OK	200	1.007959s
+secguard-api.yohay.ai	yohay.ai	dgxmain	TUNNEL_DOWN	530	cf 1033 — no cloudflared connected
+servers.yohay.ai	yohay.ai	162.19.126.209	TIMEOUT	-	Operation timed out after 15001 milliseconds with 0 bytes received
+sip.yohay.ai	yohay.ai	162.19.126.209	TLS_FAIL	-	Recv failure: Connection reset by peer
+site.yohay.ai	yohay.ai	gama2	TUNNEL_DOWN	530	cf 1033 — no cloudflared connected
+soc.yohay.ai	yohay.ai	vps4-command	SERVER_ERR	503	0.476159s
+sso.yohay.ai	yohay.ai	5060ihome	NO_INGRESS	404	tunnel up, no ingress rule for this hostname
+sso.yohayai.com	yohayai.com	storai-wp	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+status.dioneto.yohay.ai	yohay.ai	dioneto	NO_INGRESS	404	tunnel up, no ingress rule for this hostname
+status.yohay.ai	yohay.ai	162.19.126.209	TIMEOUT	-	Operation timed out after 15001 milliseconds with 0 bytes received
+stor.yohay.ai	yohay.ai	storai-wp	AUTH_SSO	302	Cloudflare Access login
+storai.yohayai.com	yohayai.com	storai-wp	AUTH_SSO	302	Cloudflare Access login
+suna.yohay.ai	yohay.ai	vpsall-yohay	OK	200	0.901094s
+sw.yohay.ai	yohay.ai	162.19.126.209	TIMEOUT	-	Operation timed out after 15002 milliseconds with 0 bytes received
+system.yohay.ai	yohay.ai	gama2	AUTH_SSO	302	Cloudflare Access login
+talk.yohay.ai	yohay.ai	5060ihome	NO_INGRESS	404	tunnel up, no ingress rule for this hostname
+talk2.yohay.ai	yohay.ai	5060ihome	NO_INGRESS	404	tunnel up, no ingress rule for this hostname
+term-arcai.yohayai.com	yohayai.com	arcai-wp	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+term-dgxmain.yohayai.com	yohayai.com	dgxmain	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+term-dgxsec.yohayai.com	yohayai.com	dgxsec	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+term-gama2.yohayai.com	yohayai.com	gama2	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+term-stor130.yohayai.com	yohayai.com	storai-wp	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+term-stor140.yohayai.com	yohayai.com	storai-wp	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+term-stor181.yohayai.com	yohayai.com	storai-wp	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+term-storai.yohayai.com	yohayai.com	storai-wp	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+term-stro170.yohayai.com	yohayai.com	storai-wp	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+term.yohay.ai	yohay.ai	5060ihome	AUTH_SSO	302	Cloudflare Access login
+travel.yohay.ai	yohay.ai	5060ihome	SERVICE_DOWN	502	edge up, backend not answering (http 502)
+uptime.vpsall.owalai.com	owalai.com	vpsall.owalai.com	TLS_FAIL	-	OpenSSL/3.0.13: error:0A000410:SSL routines::sslv3 alert handshake failure
+uptime.yohay.ai	yohay.ai	5060ihome	REDIRECT	302	-> https://uptime.yohay.ai/dashboard
+uptime.yohayai.com	yohayai.com	dgxmain	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+vault.dioneto.yohay.ai	yohay.ai	dioneto	NO_INGRESS	404	tunnel up, no ingress rule for this hostname
+vault.yohay.ai	yohay.ai	5060ihome	NO_INGRESS	404	tunnel up, no ingress rule for this hostname
+vault.yohayai.com	yohayai.com	storai-wp	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+video.yohayai.com	yohayai.com	dgxsec	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+vllm.yohayai.com	yohayai.com	dgxsec	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+vm.yohay.ai	yohay.ai	5060ihome	OK	200	1.080298s
+vm01.yohay.ai	yohay.ai	152.228.142.1	OK	200	0.576978s
+vpsall.ai1.owalai.com	owalai.com	vpsall.owalai.com	TLS_FAIL	-	OpenSSL/3.0.13: error:0A000410:SSL routines::sslv3 alert handshake failure
+vpsall.ai1.yohay.ai	yohay.ai	vpsall.yohay.ai	OK	200	0.521097s
+vpsall.ai2.yohay.ai	yohay.ai	vpsall-yohay	OK	200	0.523468s
+vpsall.aster.yohay.ai	yohay.ai	vpsall.yohay.ai	NOT_FOUND	404	0.502432s
+vpsall.heryohay.yohay.ai	yohay.ai	vpsall.yohay.ai	NOT_FOUND	404	0.532800s
+vpsall.hom.yohay.ai	yohay.ai	vpsall.yohay.ai	OK	200	0.517838s
+vpsall.owalai.com	owalai.com	haos	OK	200	2.961299s
+vpsall.yohay.ai	yohay.ai	vpsall-yohay	SERVICE_DOWN	502	edge up, backend not answering (http 502)
+vpsgit.yohay.ai	yohay.ai	45.88.191.3	OK	200	0.916610s
+vpsn8n.yohay.ai	yohay.ai	45.88.191.3	OK	200	1.703444s
+vpsuptime.yohay.ai	yohay.ai	45.88.191.3	REDIRECT	302	-> https://vpsuptime.yohay.ai/status/biton-fleet
+web.yohay.ai	yohay.ai	gama2	TUNNEL_DOWN	530	cf 1033 — no cloudflared connected
+webui-arcai.yohayai.com	yohayai.com	arcai-wp	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+webui-dgxmain.yohayai.com	yohayai.com	dgxsec	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+webui-gama2.yohayai.com	yohayai.com	gama2	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+webui-storai.yohayai.com	yohayai.com	storai-wp	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+webui.yohay.ai	yohay.ai	5060ihome	NO_INGRESS	404	tunnel up, no ingress rule for this hostname
+wiki.yohay.ai	yohay.ai	5060ihome	NO_INGRESS	404	tunnel up, no ingress rule for this hostname
+wiki.yohayai.com	yohayai.com	storai-wp	AUTH_SSO	302	Cloudflare Access login (probed from IL)
+wp.yohay.ai	yohay.ai	5060ihome	REDIRECT	302	-> https://wp.yohay.ai/login/
+wp5060.yohay.ai	yohay.ai	5060ihome	AUTH_SSO	302	Cloudflare Access login
+wpbit.yohay.ai	yohay.ai	162.19.126.209	TIMEOUT	-	Operation timed out after 15002 milliseconds with 0 bytes received
+wpgame2.yohay.ai	yohay.ai	213.32.69.7	OK	200	0.855184s
+www.annima.ai	annima.ai	wix	OK	200	0.342479s
+www.owalai.com	owalai.com	squarespace	NOT_FOUND	404	0.316315s
+www.yohay.ai	yohay.ai	yohay.ai	AUTH_SSO	302	Cloudflare Access login
+www.yohayai.com	yohayai.com	wix	OK	200	0.440537s
+yohay.ai	yohay.ai	gama2	REDIRECT	301	-> https://www.yohayai.com/
+yohayai.com	yohayai.com	wix	REDIRECT	301	-> https://www.yohayai.com/
+zentral.yohay.ai	yohay.ai	5060ihome	SERVICE_DOWN	502	edge up, backend not answering (http 502)
