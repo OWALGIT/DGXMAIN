@@ -51,3 +51,10 @@ CLAUDE.md              guidance for the agent
 Private keys, `.env`, and `secrets/` are git-ignored. Keep credentials outside
 the repo. `run` acts on many machines at once — scope with `-g`/`-H` and prefer
 a read-only check before anything destructive.
+
+## Site / URL audit
+
+`inventory/sites.tsv` is the map of every public hostname across the four
+Cloudflare zones; `bin/url-audit` probes them and writes a classified report to
+`reports/`. See `CLAUDE.md` for the two gotchas (Israeli-only geo-block, and
+Cloudflare Access masking dead backends).

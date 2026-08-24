@@ -1,0 +1,126 @@
+#!/usr/bin/env bash
+# url-audit — probe every hostname in inventory/sites.tsv and report its health.
+#
+# Reads the site inventory, issues one HTTPS request per hostname (in parallel)
+# and classifies the result. Cloudflare-specific failures are decoded from the
+# error page so a dead tunnel is reported as such instead of a bare 530.
+#
+# Usage:
+#   url-audit                 Probe everything, write reports/url-audit-<date>.tsv
+#   url-audit -z yohay.ai     Only hostnames in one zone
+#   url-audit -e 5060ihome    Only hostnames behind one edge (tunnel/origin)
+#   url-audit -o out.tsv      Write the TSV somewhere else
+#
+# Environment:
+#   AUDIT_PARALLEL   concurrent probes (default: 24)
+#   AUDIT_TIMEOUT    per-request timeout in seconds (default: 15)
+set -uo pipefail
+
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+INVENTORY="${AUDIT_INVENTORY:-$REPO_DIR/inventory/sites.tsv}"
+PARALLEL="${AUDIT_PARALLEL:-24}"
+TIMEOUT="${AUDIT_TIMEOUT:-15}"
+ZONE_FILTER=""; EDGE_FILTER=""; OUT=""
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -z) ZONE_FILTER="$2"; shift 2 ;;
+    -e) EDGE_FILTER="$2"; shift 2 ;;
+    -o) OUT="$2"; shift 2 ;;
+    -h|--help) sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *) echo "url-audit: unknown option '$1'" >&2; exit 2 ;;
+  esac
+done
+
+[ -f "$INVENTORY" ] || { echo "url-audit: no inventory at $INVENTORY" >&2; exit 1; }
+[ -n "$OUT" ] || OUT="$REPO_DIR/reports/url-audit-$(date +%Y-%m-%d).tsv"
+mkdir -p "$(dirname "$OUT")"
+
+# Probe one hostname. Emits: host<TAB>zone<TAB>edge<TAB>verdict<TAB>code<TAB>detail
+probe() {
+  local host="$1" zone="$2" edge_kind="$3" edge="$4"
+  local body code time_total redirect detail verdict
+
+  # -s so progress never pollutes stdout; -L is deliberately NOT used, a
+  # redirect is a finding worth reporting rather than following.
+  body=$(curl -sS --max-time "$TIMEOUT" \
+            -o /tmp/urlaudit.$$.body -w '%{http_code} %{time_total} %{redirect_url}' \
+            -H 'User-Agent: dgxmain-url-audit/1.0' \
+            "https://${host}/" 2>/tmp/urlaudit.$$.err)
+  local curl_rc=$?
+  code=$(awk '{print $1}' <<<"$body")
+  time_total=$(awk '{print $2}' <<<"$body")
+  redirect=$(awk '{print $3}' <<<"$body")
+
+  if [ $curl_rc -ne 0 ]; then
+    detail=$(tr -d '\r\n' </tmp/urlaudit.$$.err | sed 's/curl: ([0-9]*) //' | cut -c1-80)
+    case $curl_rc in
+      6)  verdict="DNS_FAIL" ;;
+      7)  verdict="CONN_REFUSED" ;;
+      28) verdict="TIMEOUT" ;;
+      35|60) verdict="TLS_FAIL" ;;
+      *)  verdict="ERROR" ;;
+    esac
+    printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$host" "$zone" "$edge" "$verdict" "-" "${detail:-curl_rc=$curl_rc}"
+    rm -f /tmp/urlaudit.$$.body /tmp/urlaudit.$$.err
+    return
+  fi
+
+  # Decode Cloudflare's own failure pages — the HTTP code alone hides the cause.
+  # CF signals a dead tunnel as HTTP 530 (error 1033) and origin faults as 52x,
+  # so the status code is the primary signal and the body only refines it.
+  local cf_err
+  cf_err=$(grep -oiE '(cf-error-code[^0-9]{0,20}|error code: ?)[0-9]{3,4}' /tmp/urlaudit.$$.body 2>/dev/null \
+             | grep -oE '[0-9]{3,4}$' | head -1)
+  detail=""
+  case "$code" in
+    530) verdict="TUNNEL_DOWN"; detail="cf ${cf_err:-1033} — no cloudflared connected" ;;
+    521) verdict="ORIGIN_DOWN"; detail="cf 521 — origin refused connection" ;;
+    522) verdict="ORIGIN_TIMEOUT"; detail="cf 522 — origin timed out" ;;
+    523) verdict="ORIGIN_UNREACHABLE"; detail="cf 523 — origin unreachable" ;;
+    525|526) verdict="ORIGIN_TLS_FAIL"; detail="cf $code — origin TLS handshake failed" ;;
+    502|504) verdict="SERVICE_DOWN"; detail="edge up, backend not answering (http $code)" ;;
+    2*)  verdict="OK" ;;
+    30*) verdict="REDIRECT"; detail="-> ${redirect:-?}"
+         # A hop to Cloudflare Access means the app is up and gated by SSO.
+         case "$redirect" in *cloudflareaccess.com*) verdict="AUTH_SSO"; detail="Cloudflare Access login" ;; esac ;;
+    401) verdict="AUTH"; detail="http 401 — service up, credentials required" ;;
+    403)
+      # Distinguish a real app 403 from Cloudflare's own bot/WAF interstitial,
+      # which says nothing about whether the site behind it is healthy.
+      if grep -qiE 'Attention Required|Just a moment|cf-challenge|Enable JavaScript and cookies' /tmp/urlaudit.$$.body 2>/dev/null; then
+        verdict="WAF_BLOCKED"; detail="Cloudflare challenge — probe blocked, health unknown"
+      else
+        verdict="AUTH"; detail="http 403 — service up, access denied"
+      fi ;;
+    404) verdict="NOT_FOUND" ;;
+    5*)  verdict="SERVER_ERR" ;;
+    000) verdict="NO_RESPONSE" ;;
+    *)   verdict="HTTP_$code" ;;
+  esac
+
+  # A 404 straight from a tunnel is the catch-all rule: DNS exists, no service.
+  if [ "$verdict" = "NOT_FOUND" ] && [ "$edge_kind" = "tunnel" ]; then
+    verdict="NO_INGRESS"; detail="tunnel up, no ingress rule for this hostname"
+  fi
+
+  printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
+    "$host" "$zone" "$edge" "$verdict" "$code" "${detail:-${time_total}s}"
+  rm -f /tmp/urlaudit.$$.body /tmp/urlaudit.$$.err
+}
+export -f probe
+export TIMEOUT
+
+# Feed the inventory through xargs for parallelism; skip comments and blanks.
+{
+  printf '# host\tzone\tedge\tverdict\thttp\tdetail\n'
+  grep -v '^#' "$INVENTORY" | grep -v '^[[:space:]]*$' \
+    | awk -F'\t' -v z="$ZONE_FILTER" -v e="$EDGE_FILTER" \
+        '(z==""||$2==z) && (e==""||$5==e) {print $1"\t"$2"\t"$4"\t"$5}' \
+    | xargs -P "$PARALLEL" -I{} bash -c 'IFS=$'"'"'\t'"'"' read -r h z k e <<<"{}"; probe "$h" "$z" "$k" "$e"' \
+    | sort
+} > "$OUT"
+
+echo "url-audit: wrote $OUT"
+echo
+awk -F'\t' 'NR>1 && $4!="" {c[$4]++} END {for (v in c) printf "%-20s %d\n", v, c[v]}' "$OUT" | sort -k2 -rn

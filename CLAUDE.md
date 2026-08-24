@@ -45,6 +45,36 @@ Every host is implicitly in the `all` group. Current groups:
 Edit that file to add/remove machines or re-tag them. It contains **no secrets**
 and is tracked in git.
 
+## Auditing the sites / URLs
+
+`inventory/sites.tsv` maps **every HTTP-servable hostname** across all four
+Cloudflare zones (`yohay.ai`, `yohayai.com`, `owalai.com`, `annima.ai`) to the
+edge that serves it — a named Cloudflare Tunnel, a direct origin IP, a CNAME
+alias, or a SaaS host. `bin/url-audit` probes them all and classifies each one.
+
+```bash
+./bin/url-audit                  # probe everything -> reports/url-audit-<date>.tsv
+./bin/url-audit -z yohayai.com   # one zone
+./bin/url-audit -e 5060ihome     # everything behind one tunnel/origin
+```
+
+It decodes Cloudflare's own failure pages, so you get `TUNNEL_DOWN` (cf 1033),
+`NO_INGRESS` (tunnel up, no rule for the hostname), `SERVICE_DOWN` (backend not
+answering) and `ORIGIN_*` rather than a bare 5xx.
+
+**Probe from an Israeli IP.** Both zones carry a `ks7-geo-block` WAF ruleset
+that blocks non-Israeli source IPs — `yohayai.com` blocks all but a 15-host
+allowlist. Auditing from anywhere else reports that whole zone as blocked. The
+`5060ihome` host (Tel Aviv) is the right vantage point; it has no `curl`, so use
+`python3`.
+
+**Cloudflare Access hides backend state.** ~81 names sit behind
+`bitonpro.cloudflareaccess.com`. Access answers *before* the tunnel, so an SSO
+redirect proves the edge is configured, not that anything is alive behind it.
+Always cross-check the serving tunnel's status.
+
+Findings from the last full sweep: `reports/url-audit-2026-08-24.md`.
+
 ## Auth & secrets
 
 - SSH user + key are set in `ssh/config` (default user `root`,
