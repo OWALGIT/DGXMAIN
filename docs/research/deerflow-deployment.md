@@ -154,6 +154,26 @@ make up               # בנייה מחדש והפעלה
 docker ps --filter name=deer-flow
 ```
 
+## הממשק — שתי מלכודות שנמצאו בבדיקה חיה
+
+נבדק ב‑26.08.2026 בדפדפן אמיתי (Playwright, משתמש בדיקה זמני שנמחק אחרי).
+
+### 1. `agents_api.enabled` היה `false`
+
+זו ברירת המחדל בקובץ הדוגמה. התוצאה בממשק: ליד **Agents** בסרגל הצד מופיע
+**"Feature not enabled"**, ואי אפשר ליצור שום סוכן. הועבר ל‑`true`, ואחרי
+restart של ה‑gateway `/workspace/agents` מציג "New Agent" כמצופה.
+
+### 2. אין deep-link להגדרות
+
+`?settings=<section>` **לא עובד** — הוא מפנה מחדש ל‑`/workspace/chats/new`
+והדיאלוג לא נפתח. אימות: `dialogs=0` בכל ארבע הסקציות שנבדקו, ואותו טקסט בדיוק
+(464 תווים) בכל אחת. זה בדיוק הסימפטום של "כל התפריטים נראים אותו דבר".
+
+**הדרך היחידה:** סרגל צד → **Settings and more** → **Settings**. הדיאלוג מכיל:
+Account, Appearance, Notification, Channels, **Integrations** (שם יושב MCP),
+Memory, **Tools**, **Subagents**, **Skills**, About.
+
 ## מה עוד לא נסגר
 
 - [ ] **first-run setup** ב‑`/setup` — עד שמשלימים אותו, כל מי שעל הטיילנט יכול להגיע לממשק.
