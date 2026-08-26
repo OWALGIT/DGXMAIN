@@ -41,19 +41,40 @@
 כולם דרך ה‑LiteLLM המקומי (`http://100.89.89.47:4000/v1`) עם virtual key ייעודי
 בשם `deerflow-nerve-hub-2026-08-26`, כך שהצריכה נמדדת בנפרד:
 
-| שם ב‑DeerFlow | מאחורי הקלעים | הערה |
+| שם ב‑DeerFlow | מאחורי הקלעים | תפקיד |
 |---|---|---|
-| `free-smart` | `mistral-large-latest` | ברירת המחדל לסוכן המוביל |
-| `free-flash` | `gemini-3-flash-preview` | מהיר, תומך vision |
-| `free-dev` | `devstral-latest` | מודל קוד אג'נטי |
-| `auto` | ראוטר LiteLLM (`MAIN`) | לא לסוכן המוביל — ראה למטה |
+| `free-flash` | `gemini-3-flash-preview` | ברירת המחדל לסוכן המוביל |
+| `auto` | ראוטר LiteLLM (`MAIN`) | גיבוי בלבד |
 
-**למה לא `auto` לסוכן המוביל:** הוא בוחר מודל דינמית, ולכן תמיכת tool calling אינה
-מובטחת בכל ניתוב. Harness ארוך‑טווח נשען על tool calling בכל תור; ניתוב אחד למודל
-בלי תמיכה שובר את הריצה באמצע.
+### ⚠️ כל מודלי Mistral לא שמישים כאן
 
-**למה לא `free-code`:** הוא `codestral-latest` — מודל השלמת קוד (FIM), לא מודל
-אג'נטי. לא מתאים ללולאת סוכן.
+DeerFlow מוסיף `name: "user-input"` לכל הודעת משתמש. ה‑API של Mistral דוחה את
+השדה הזה מכל וכל:
+
+```
+422 extra_forbidden: body.messages[1].user.name
+```
+
+כלומר **כל תור נכשל בקריאה הראשונה**. נבדק ב‑26.08.2026 מול הגייטוויי מול כל
+ה‑aliases:
+
+| alias | מודל | תוצאה |
+|---|---|---|
+| `free-flash` | gemini-3-flash-preview | ✅ עובר, כולל tool calling |
+| `auto` | MAIN (openai) | ✅ עובר |
+| `free-smart` | mistral-large-latest | ❌ 422 |
+| `free-mid` | mistral-medium-3-5 | ❌ 422 |
+| `free-fast` | mistral-small-latest | ❌ 422 |
+| `free-dev` | devstral-latest | ❌ 422 |
+
+לכן הוצאו מ‑`config.yaml`. כדי להחזיר אותם צריך לגרום ל‑LiteLLM להסיר את `name`
+מההודעות לפני שהן מגיעות ל‑Mistral — תיקון בצד ה‑LiteLLM, לא בצד DeerFlow.
+
+**למה `auto` הוא לא ברירת המחדל:** הוא בוחר מודל דינמית, ולכן תמיכת tool calling
+אינה מובטחת בכל ניתוב. Harness ארוך‑טווח נשען על tool calling בכל תור.
+
+**הערה על `free-code`:** גם אלמלא בעיית ה‑`name`, הוא `codestral-latest` — מודל
+השלמת קוד (FIM), לא מודל אג'נטי. לא מתאים ללולאת סוכן.
 
 ## סנדבוקס
 
@@ -78,6 +99,7 @@ docker ps --filter name=deer-flow
 
 ## מה עוד לא נסגר
 
+- [x] ~~מודלים~~ — נפתר: מעבר ל‑`free-flash` אחרי כשל 422 של Mistral
 - [ ] **first-run setup** — עד שמשלימים אותו, כל מי שעל הטיילנט יכול להגיע לממשק.
 - [ ] אימות שה‑streaming לא נקטע (הבאג המדווח ב‑2026).
 - [ ] אימות שהסוכן באמת מריץ קוד בסנדבוקס ולא רק מציג אותו.
