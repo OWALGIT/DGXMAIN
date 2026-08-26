@@ -78,14 +78,71 @@ DeerFlow מוסיף `name: "user-input"` לכל הודעת משתמש. ה‑API 
 
 ## סנדבוקס
 
-`AioSandboxProvider` עם `all-in-one-sandbox:1.11.0`, 3 רפליקות מקבילות.
+`AioSandboxProvider` עם `ghcr.io/agent-infra/sandbox:1.11.0`, 3 רפליקות מקבילות.
 הסוכן מקבל bash ומערכת קבצים **בתוך קונטיינר חד‑פעמי**, לא על ה‑host.
+נבדק שהאימג' עולה ומגיע ל‑health check.
 
-⚠️ **מחיר האבטחה:** מצב aio ממפה את `/var/run/docker.sock` של ה‑host לתוך
-קונטיינר ה‑gateway (DooD). זה **שקול ל‑root על nerve-hub** למי שמשיג הרצת קוד
-ב‑gateway. סקריפט הפריסה מזהיר על כך במפורש ומפנה ל‑`SECURITY.md`.
+### הרג'יסטרי — לא זה שבתיעוד
+
+התיעוד מפנה ל‑`enterprise-public-cn-beijing.cr.volces.com`. **הוא נתקע כאן.**
+64 דקות של pull שצרכו 4 שניות CPU בסך הכל — כלומר תקיעה ברשת, לא בדיסק —
+והשכבה האחרונה מעולם לא הושלמה. האימג' שוקל **13.1GB**, מה שמסביר את זה.
+
+המעבר ל‑GHCR הרשמי של הפרויקט (אותה גרסה בדיוק) פתר. גם שם הניסיון הראשון
+נכשל ב‑`connection reset` מול כתובת IPv6 של ghcr; ניסיון שני עבר, וניצל את
+השכבות שכבר ירדו מהמראה הסיני.
+
+### ⚠️ מחיר האבטחה
+
+מצב aio ממפה את `/var/run/docker.sock` של ה‑host לתוך קונטיינר ה‑gateway (DooD).
+זה **שקול ל‑root על nerve-hub** למי שמשיג הרצת קוד ב‑gateway. סקריפט הפריסה
+מזהיר על כך במפורש ומפנה ל‑`SECURITY.md`.
 החלופות: `LocalSandboxProvider` (bash ישירות על ה‑host — גרוע יותר) או
 provisioner על Kubernetes (בידוד מלא, יותר תשתית).
+
+### `allow_host_bash` הוא no‑op כאן
+
+הדגל נראה כמו מתג אבטחה מרכזי, אבל לפי הקוד הוא נבדק **רק** עבור
+`LocalSandboxProvider`:
+
+```python
+def is_host_bash_allowed(config=None) -> bool:
+    ...
+    if not uses_local_sandbox_provider(config):
+        return True
+    return bool(getattr(sandbox_cfg, "allow_host_bash", False))
+```
+
+תחת aio הפונקציה מחזירה `True` ממילא — bash מאופשר במלואו, והפקודות רצות
+בקונטיינר. שינוי הדגל ל‑`true` לא משנה דבר, ולכן הוא נשאר `false`.
+
+## יכולות שהופעלו
+
+**קבוצות כלים:** כל שש — `web`, `file:read`, `file:write`, `bash`, `browser`,
+`knowledge`.
+
+**כלים פעילים: 18.** מתוכם 8 כלי דפדפן שהיו מנוטרלים כברירת מחדל והופעלו:
+`browser_navigate`, `snapshot`, `click`, `type`, `get_text`, `back`,
+`screenshot`, `close`.
+
+הפעלתם דורשת בנייה מחדש של האימג' (הוא מושך את ה‑extra של `browser`), **וגם
+התקנת הבינארי של chromium** — שלא מגיע עם האימג'. בלעדיו הכלים נטענים ונכשלים
+בזמן ריצה. הותקן ואומת: `Chrome Headless Shell 149.0.7827.55`.
+
+כדי שההתקנה תשרוד בנייה מחדש, הופנתה לתיקייה שמכוונת מה‑host:
+
+```
+PLAYWRIGHT_BROWSERS_PATH=/app/backend/.deer-flow/ms-playwright   # ב-.env
+```
+
+> ⚠️ נתוני הריצה יושבים ב‑**`/opt/deer-flow/backend/.deer-flow`** ולא ב‑
+> `/opt/deer-flow/.deer-flow`, למרות מה שמוגדר ב‑`DEER_FLOW_HOME`. סקריפט
+> הפריסה גובר. זה ה‑bind mount האמיתי — 736MB, מתוכם 646MB chromium.
+
+**Skills:** כל 23 שעל הדיסק נטענים, בלי הגבלה.
+
+**לא הופעל — `knowledge_search`:** דורש שרת **RAGFlow** (`base_url` +
+`RAGFLOW_API_KEY`). אין כזה בצי. להפעיל אותו בלי backend זה לתת לסוכן כלי שנכשל.
 
 ## תפעול
 
@@ -99,9 +156,10 @@ docker ps --filter name=deer-flow
 
 ## מה עוד לא נסגר
 
-- [x] ~~מודלים~~ — נפתר: מעבר ל‑`free-flash` אחרי כשל 422 של Mistral
-- [ ] **first-run setup** — עד שמשלימים אותו, כל מי שעל הטיילנט יכול להגיע לממשק.
+- [ ] **first-run setup** ב‑`/setup` — עד שמשלימים אותו, כל מי שעל הטיילנט יכול להגיע לממשק.
+- [ ] **שרתי MCP** — `extensions_config.json` עדיין ריק. דורש טוקנים.
+- [ ] ספק חיפוש (`TAVILY_API_KEY` / `INFOQUEST_API_KEY` ב‑`.env`).
+- [ ] `embed` (mistral-embed) לא מחובר — נדרש אם מפעילים RAG.
 - [ ] אימות שה‑streaming לא נקטע (הבאג המדווח ב‑2026).
 - [ ] אימות שהסוכן באמת מריץ קוד בסנדבוקס ולא רק מציג אותו.
-- [ ] חיבור ספק חיפוש (`TAVILY_API_KEY` / `INFOQUEST_API_KEY` ב‑`.env`).
-- [ ] `embed` (mistral-embed) לא מחובר עדיין — נדרש אם מפעילים RAG.
+- [ ] `lark-cli` (Feishu) נכשל בהתקנה בקונטיינר — אין `curl` באימג'. לא חוסם דבר אחר.
